@@ -5,38 +5,80 @@ import java.util.List;
 import java.util.Stack;
 
 import io.github.ianw11.hivecarbon.piece.Piece;
-import io.github.ianw11.hivecarbon.piece.Piece.Location;
 
 public class GraphNode {
+   
+   public enum Location {
+      TOP (new int[] {0,-1}),
+      TOP_RIGHT (new int[] {1,-1}),
+      BOTTOM_RIGHT (new int[] {1,0}),
+      BOTTOM (new int[] {0, 1}),
+      BOTTOM_LEFT (new int[] {-1,0}),
+      TOP_LEFT (new int[] {-1,-1});
+      
+      private final int[] movementMatrix;
+      private Location(int[] matrix) {
+         movementMatrix = matrix;
+      }
+      
+      public int[] getMovementMatrix(int xCoord) {
+         if (xCoord % 2 == 0) {
+            return evenXMatrix();
+         } else {
+            return oddXMatrix();
+         }
+      }
+      
+      public Location opposite() {
+         switch(this) {
+         case TOP:
+            return BOTTOM;
+         case TOP_RIGHT:
+            return BOTTOM_LEFT;
+         case BOTTOM_RIGHT:
+            return TOP_LEFT;
+         case BOTTOM:
+            return TOP;
+         case BOTTOM_LEFT:
+            return TOP_RIGHT;
+         case TOP_LEFT:
+            return BOTTOM_RIGHT;
+         default:
+            throw new UnsupportedOperationException();
+         }
+      }
+      
+      private int[] evenXMatrix() {
+         return movementMatrix;
+      }
+      
+      private int[] oddXMatrix() {
+         switch(this) {
+         case TOP:
+         case BOTTOM:
+            return movementMatrix;
+         default:
+            return new int[] {movementMatrix[0], movementMatrix[1] + 1};
+         }
+      }
+   };
 
    private final Coordinate mCoordinate;
    private Stack<Piece> mPieceStack;
-   private final GraphNode[] mAdjacency;
+   private final GraphNode[] mAdjacency = new GraphNode[6];
 
    private int mCurrentController;
 
    public GraphNode(Coordinate coordinate) {
       mCoordinate = coordinate;
-      mAdjacency = new GraphNode[6];
    }
 
    /**
-    * 
     * @param location The location of THIS node's connection
     * @param neighbor
     */
-   public void setAdjacency(Location location, GraphNode neighbor) {
-      //GraphNode old = mAdjacency[location.ordinal()];
+   protected void setAdjacency(Location location, GraphNode neighbor) {
       mAdjacency[location.ordinal()] = neighbor;
-      /*
-      if (mPiece != null && old != neighbor) {
-         if (old == null) {
-            mPiece.addNeighbor();
-         } else {
-            mPiece.removeNeighbor();
-         }
-      }
-       */
    }
 
    public Coordinate getCoordinate() {
@@ -44,7 +86,6 @@ public class GraphNode {
    }
 
    public boolean canSetPiece(Piece piece, boolean canGoNextToOtherColor) {
-      
       // If this node already has a piece
       if (mPieceStack != null) {
          return false;
@@ -64,7 +105,7 @@ public class GraphNode {
       return true;
    }
 
-   public void setPiece(Piece piece, boolean canGoNextToOtherColor) {
+   protected void setPiece(Piece piece, boolean canGoNextToOtherColor) {
       if (piece != null && !canSetPiece(piece, canGoNextToOtherColor)){
          throw new IllegalStateException();
       }
@@ -77,11 +118,11 @@ public class GraphNode {
          mPieceStack = new Stack<Piece>();
          mPieceStack.add(piece);
          mCurrentController = piece.getOwnerNumber();
-         piece.removeAllNeighbors();
+         //piece.removeAllNeighbors();
       }
 
       for (GraphNode neighbor : mAdjacency) {
-         if (neighbor != null && neighbor.isActive()) {
+         if (neighbor.isActive()) {
             if (mPieceStack == null) {
                neighbor.byeNeighbor();
             } else {
@@ -92,26 +133,28 @@ public class GraphNode {
       }
    }
 
-   public void byeNeighbor() {
+   private void byeNeighbor() {
       if (!isActive()) {
          throw new IllegalStateException("Node is not active");
       }
       
       for (Piece piece : mPieceStack) {
-         piece.removeNeighbor();
+         //piece.removeNeighbor();
       }
    }
 
-   public void newNeighbor() {
+   private void newNeighbor() {
       if (!isActive()) {
          throw new IllegalStateException("Node is not active");
       }
       
       for (Piece piece : mPieceStack) {
-         piece.addNeighbor();
+         //piece.addNeighbor();
       }
    }
 
+   
+   
    public boolean isActive() {
       return mPieceStack != null;
    }
@@ -132,7 +175,9 @@ public class GraphNode {
       if (mCoordinate.equals(coordinate)) {
          return this;
       }
+      
       visited.add(this);
+      
       for (GraphNode node : mAdjacency) {
          if (node != null && !visited.contains(node)) {
             GraphNode ret = node.findGraphNodeInternal(coordinate, visited);
@@ -141,6 +186,7 @@ public class GraphNode {
             }
          }
       }
+      
       return null;
    }
    
@@ -151,17 +197,36 @@ public class GraphNode {
    }
    
    private void connectedNodesInternal(ArrayList<GraphNode> visited, Piece piece) {
-      if (mPieceStack == null || piece.equals(mPieceStack.peek())) {
+      if (piece.equals(mPieceStack.peek())) {
          return;
       }
       
+      System.out.println("Working on coordinate " + mCoordinate);
       visited.add(this);
       
       for (GraphNode node : mAdjacency) {
-         if (node != null && !visited.contains(node)) {
+         System.out.println("Node: " + node.getCoordinate());
+         if (node.isActive() && !visited.contains(node)) {
             node.connectedNodesInternal(visited, piece);
          }
       }
+   }
+   
+   public List<Coordinate> getEmptyNeighbors(Coordinate toIgnore) {
+      List<Coordinate> ret = new ArrayList<Coordinate>();
+      
+      for (GraphNode node : mAdjacency) {
+         if (node.isActive()) {
+            continue;
+         }
+         
+         Coordinate coordinate = node.getCoordinate();
+         if (!coordinate.equals(toIgnore)) {
+            ret.add(coordinate);
+         }
+      }
+      
+      return ret;
    }
 
 }

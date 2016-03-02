@@ -1,61 +1,26 @@
 package io.github.ianw11.hivecarbon.piece;
 
-import io.github.ianw11.hivecarbon.engines.RulesEngine.Type;
-
 public class Piece {
    
-   public enum Location {
-      TOP (new int[] {0,-1}),
-      TOP_RIGHT (new int[] {1,-1}),
-      BOTTOM_RIGHT (new int[] {1,0}),
-      BOTTOM (new int[] {0, 1}),
-      BOTTOM_LEFT (new int[] {-1,0}),
-      TOP_LEFT (new int[] {-1,-1});
-      
-      private final int[] movementMatrix;
-      private Location(int[] matrix) {
-         movementMatrix = matrix;
+   public enum Type {
+      QUEEN_BEE(1, "QNB"),    // Index 0
+      BEETLE(2, "BTL"),       // Index 1, 2
+      GRASSHOPPER(3, "GHP"),  // Index 3, 4, 5
+      SPIDER(2, "SPR"),       // Index 6, 7
+      SOLDIER_ANT(3, "ANT");  // Index 8, 9, 10
+
+      private final int mNumInGame;
+      private final String mShortName;
+      private Type(int numInGame, String shortName) {
+         mNumInGame = numInGame;
+         mShortName = shortName;
       }
-      
-      public int[] getMovementMatrix(int xCoord) {
-         if (xCoord % 2 == 0) {
-            return evenXMatrix();
-         } else {
-            return oddXMatrix();
-         }
+
+      public int getNumInGame() {
+         return mNumInGame;
       }
-      
-      public Location opposite() {
-         switch(this) {
-         case TOP:
-            return BOTTOM;
-         case TOP_RIGHT:
-            return BOTTOM_LEFT;
-         case BOTTOM_RIGHT:
-            return TOP_LEFT;
-         case BOTTOM:
-            return TOP;
-         case BOTTOM_LEFT:
-            return TOP_RIGHT;
-         case TOP_LEFT:
-            return BOTTOM_RIGHT;
-         default:
-            throw new UnsupportedOperationException();
-         }
-      }
-      
-      private int[] evenXMatrix() {
-         return movementMatrix;
-      }
-      
-      private int[] oddXMatrix() {
-         switch(this) {
-         case TOP:
-         case BOTTOM:
-            return movementMatrix;
-         default:
-            return new int[] {movementMatrix[0], movementMatrix[1] + 1};
-         }
+      public String getShortName() {
+         return mShortName;
       }
    };
    
@@ -73,7 +38,7 @@ public class Piece {
    }
    
    public String toString() {
-      return "P" + mOwnerNumber + " - " + mType.name();
+      return "[PIECE P" + mOwnerNumber + " - " + mType.name() + "]";
    }
    
    public int getOwnerNumber() {
@@ -98,6 +63,7 @@ public class Piece {
       return mType.equals(Type.QUEEN_BEE);
    }
    
+   /*
    public void addNeighbor() {
       if (++mNumNeighbors > 6) {
          throw new IllegalStateException("More than 6 neighbors for tile");
@@ -114,15 +80,11 @@ public class Piece {
       mNumNeighbors = 0;
    }
    
-   /**
-    * Test function
-    */
-   public int getNumNeighbors() {
-      return mNumNeighbors;
-   }
-   
    public boolean isSurrounded() {
       return mNumNeighbors == 6;
    }
-
+   public int getNumNeighbors() {
+      return mNumNeighbors;
+   }
+    */
 }

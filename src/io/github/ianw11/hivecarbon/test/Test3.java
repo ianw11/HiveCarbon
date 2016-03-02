@@ -1,8 +1,8 @@
 package io.github.ianw11.hivecarbon.test;
 
 import io.github.ianw11.hivecarbon.engines.MoveTurnAction;
-import io.github.ianw11.hivecarbon.engines.RulesEngine.Type;
 import io.github.ianw11.hivecarbon.graph.Coordinate;
+import io.github.ianw11.hivecarbon.piece.Piece.Type;
 import io.github.ianw11.hivecarbon.test.TestDriver.TestObject;
 
 public class Test3 extends TestObject {
@@ -22,11 +22,7 @@ public class Test3 extends TestObject {
       {
          assert(turnResult == false);
          assert(engine.isGameFinished() == false);
-         int[] bounds = graph.getMapBounds();
-         expectEqual(bounds[0], -1);
-         expectEqual(bounds[1], 1);
-         expectEqual(bounds[2], 0);
-         expectEqual(bounds[3], 1);
+         verifyBounds(-1, 1, 0, 1);
          assert(playerOnePieces.get(1).isPlaced());
          check(new Coordinate(0, 0), 0, Type.QUEEN_BEE);
          check(new Coordinate(1, 0), 0, Type.BEETLE);
@@ -40,11 +36,7 @@ public class Test3 extends TestObject {
       {
          assert(turnResult == false);
          assert(engine.isGameFinished() == false);
-         int[] bounds = graph.getMapBounds();
-         expectEqual(bounds[0], -1);
-         expectEqual(bounds[1], 1);
-         expectEqual(bounds[2], 0);
-         expectEqual(bounds[3], 1);
+         verifyBounds(-1, 1, 0, 1);
          assert(playerOnePieces.get(1).isPlaced());
          check(new Coordinate(0, 0), 0, Type.QUEEN_BEE);
          check(new Coordinate(1, 0), 0, Type.BEETLE);

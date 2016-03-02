@@ -6,32 +6,12 @@ import java.util.List;
 import io.github.ianw11.hivecarbon.Player.Player;
 import io.github.ianw11.hivecarbon.graph.Coordinate;
 import io.github.ianw11.hivecarbon.graph.Graph;
+import io.github.ianw11.hivecarbon.graph.GraphBounds;
+import io.github.ianw11.hivecarbon.graph.GraphBounds.Builder;
 import io.github.ianw11.hivecarbon.graph.GraphNode;
 import io.github.ianw11.hivecarbon.piece.Piece;
 
 public class RulesEngine {
-
-   public enum Type {
-      QUEEN_BEE(1, "QNB"),
-      BEETLE(2, "BTL"),
-      GRASSHOPPER(3, "GHP"),
-      SPIDER(2, "SPR"),
-      SOLDIER_ANT(3, "ANT");
-
-      private final int mNumInGame;
-      private final String mShortName;
-      private Type(int numInGame, String shortName) {
-         mNumInGame = numInGame;
-         mShortName = shortName;
-      }
-
-      public int getNumInGame() {
-         return mNumInGame;
-      }
-      public String getShortName() {
-         return mShortName;
-      }
-   };
 
    private final ArrayList<Player> mPlayers = new ArrayList<Player>();
    private int mPlayerTurn = 0;
@@ -92,13 +72,7 @@ public class RulesEngine {
          return false;
       }
       
-      GraphNode newNode = mGraph.findGraphNode(coordinate);
-      if (newNode == null) {
-         newNode = mGraph.createGraphNode(coordinate);
-      }
-      
-      oldNode.setPiece(null, true);
-      newNode.setPiece(piece, true);
+      mGraph.movePiece(oldNode, coordinate, piece);
       
       return true;
    }
@@ -123,6 +97,8 @@ public class RulesEngine {
       final Coordinate coordinate = action.mCoordinate;
       final Piece piece = action.mPiece;
       
+      System.out.println("Playing piece " + piece + " at " + coordinate);
+      
       if (mGameTurn == 1 && mPlayerTurn == 0 && !coordinate.equals(new Coordinate(0, 0))) {
          return false;
       }
@@ -132,15 +108,8 @@ public class RulesEngine {
       if (!isDestinationOk(coordinate, piece, canGoNextToOtherColor) || piece.isPlaced()) {
          return false;
       }
-
-      GraphNode node = mGraph.findGraphNode(coordinate);
-
-      if (node == null) {
-         node = mGraph.createGraphNode(coordinate);
-      }
-
-      node.setPiece(piece, canGoNextToOtherColor);
-      piece.setPlaced();
+      
+      mGraph.playPiece(piece, coordinate, canGoNextToOtherColor);
 
       return true;
    }
@@ -174,26 +143,27 @@ public class RulesEngine {
     * UI Methods
     */
    public int[] getShift() {
-      int[] temp = mGraph.getMapBounds();
+      GraphBounds temp = mGraph.getMapBounds();
       int[] ret = new int[] {
-            -temp[0],
-            -temp[2]
+            -temp.MIN_X,
+            -temp.MIN_Y
       };
       return ret;
    }
    
-   public int[] getNormalizedBounds() {
-      int[] temp = mGraph.getMapBounds();
-      int[] ret = new int[4];
+   public GraphBounds getNormalizedBounds() {
+      GraphBounds temp = mGraph.getMapBounds();
       int[] shift = getShift();
       
-      ret[0] = temp[0] + shift[0];
-      ret[1] = temp[1] + shift[0];
+      Builder builder = new Builder();
       
-      ret[2] = temp[2] + shift[1];
-      ret[3] = temp[3] + shift[1];
+      builder.setX(temp.MIN_X + shift[0]);
+      builder.setX(temp.MAX_X + shift[0]);
       
-      return ret;
+      builder.setY(temp.MIN_Y + shift[1]);
+      builder.setY(temp.MAX_Y + shift[1]);
+      
+      return builder.build();
    }
 
    /**

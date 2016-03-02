@@ -1,6 +1,6 @@
 package io.github.ianw11.hivecarbon.graph;
 
-import io.github.ianw11.hivecarbon.piece.Piece.Location;
+import io.github.ianw11.hivecarbon.graph.GraphNode.Location;
 
 public class Coordinate {
    

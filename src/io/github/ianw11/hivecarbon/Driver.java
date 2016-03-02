@@ -7,18 +7,18 @@ import java.util.Iterator;
 import javax.swing.JFrame;
 import javax.swing.JList;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
 
 import io.github.ianw11.hivecarbon.engines.PlaceTurnAction;
 import io.github.ianw11.hivecarbon.engines.RulesEngine;
-import io.github.ianw11.hivecarbon.engines.RulesEngine.Type;
 import io.github.ianw11.hivecarbon.engines.TurnAction;
 import io.github.ianw11.hivecarbon.graph.Coordinate;
 import io.github.ianw11.hivecarbon.graph.Graph;
+import io.github.ianw11.hivecarbon.graph.GraphBounds;
 import io.github.ianw11.hivecarbon.graph.GraphNode;
 import io.github.ianw11.hivecarbon.piece.Piece;
+import io.github.ianw11.hivecarbon.piece.Piece.Type;
 import io.github.ianw11.hivecarbon.ui.BasicMouseListener;
 import io.github.ianw11.hivecarbon.ui.BasicMouseListener.MouseActionListener;
 import io.github.ianw11.hivecarbon.ui.GameBoard;
@@ -89,19 +89,19 @@ public class Driver implements MouseActionListener {
    }
 
    private void buildBoard() {
-      int[] bounds = mEngine.getNormalizedBounds();
+      GraphBounds bounds = mEngine.getNormalizedBounds();
       int[] shiftXY = mEngine.getShift();
 
-      int x = bounds[1] + 3;
-      int y = bounds[3] + 3;
+      int x = bounds.MAX_X + 3;
+      int y = bounds.MAX_Y + 3;
       Hex[][] board = new Hex[x][y];
       System.out.println("Building board with dimensions (" + x + ", " + y + ")");
 
       int boardSize = Math.max(x, y);
 
       // Initialize game board with empty hexes
-      for (int i = bounds[0]; i < bounds[1]; ++i) {
-         for (int j = bounds[2]; j < bounds[3]; ++j) {
+      for (int i = bounds.MIN_X; i < bounds.MAX_X; ++i) {
+         for (int j = bounds.MIN_Y; j < bounds.MAX_Y; ++j) {
             board[i][j] = Hex.emptyHex();
          }
       }

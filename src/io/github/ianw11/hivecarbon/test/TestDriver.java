@@ -9,12 +9,13 @@ import io.github.ianw11.hivecarbon.Player.Player;
 import io.github.ianw11.hivecarbon.engines.MoveTurnAction;
 import io.github.ianw11.hivecarbon.engines.PlaceTurnAction;
 import io.github.ianw11.hivecarbon.engines.RulesEngine;
-import io.github.ianw11.hivecarbon.engines.RulesEngine.Type;
 import io.github.ianw11.hivecarbon.engines.TurnAction;
 import io.github.ianw11.hivecarbon.graph.Coordinate;
 import io.github.ianw11.hivecarbon.graph.Graph;
+import io.github.ianw11.hivecarbon.graph.GraphBounds;
 import io.github.ianw11.hivecarbon.graph.GraphNode;
 import io.github.ianw11.hivecarbon.piece.Piece;
+import io.github.ianw11.hivecarbon.piece.Piece.Type;
 
 public class TestDriver {
    
@@ -27,10 +28,11 @@ public class TestDriver {
       //////////////////////////
       
       
-      tests.add(new CoordinateTest());
-      tests.add(new Test1());
+      //tests.add(new CoordinateTest());
+      //tests.add(new Test1());
       tests.add(new Test2());
-      tests.add(new Test3());
+      //tests.add(new Test3());
+      //tests.add(new Test4());
       //tests.add(new UITest());
       
       
@@ -61,7 +63,7 @@ public class TestDriver {
       
       boolean turnResult;
       
-      private int[] bounds;
+      private GraphBounds bounds;
       private ArrayList<Piece> placedPieces = new ArrayList<Piece>();
       private Map<Piece, Coordinate> pieceLocations = new HashMap<Piece, Coordinate>();
       
@@ -82,6 +84,15 @@ public class TestDriver {
       
       protected void expectEqual(Object one, Object two) {
          assert(one.equals(two));
+      }
+      
+      protected void verifyBounds(int minX, int maxX, int minY, int maxY) {
+         bounds = graph.getMapBounds();
+         System.out.println(bounds.toString());
+         expectEqual(bounds.MIN_X, minX);
+         expectEqual(bounds.MAX_X, maxX);
+         expectEqual(bounds.MIN_Y, minY);
+         expectEqual(bounds.MAX_Y, maxY);
       }
       
       
@@ -162,11 +173,7 @@ public class TestDriver {
       
       private void genericChecks(boolean isGameFinished, int[] expectedBounds) {
          assert(engine.isGameFinished() == isGameFinished);
-         bounds = graph.getMapBounds();
-         expectEqual(bounds[0], expectedBounds[0]);
-         expectEqual(bounds[1], expectedBounds[1]);
-         expectEqual(bounds[2], expectedBounds[2]);
-         expectEqual(bounds[3], expectedBounds[3]);
+         verifyBounds(expectedBounds[0], expectedBounds[1], expectedBounds[2], expectedBounds[3]);
       }
    }
 

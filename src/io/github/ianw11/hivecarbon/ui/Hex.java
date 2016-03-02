@@ -2,7 +2,7 @@ package io.github.ianw11.hivecarbon.ui;
 
 import java.awt.Color;
 
-import io.github.ianw11.hivecarbon.engines.RulesEngine.Type;
+import io.github.ianw11.hivecarbon.piece.Piece.Type;
 
 public class Hex {
    

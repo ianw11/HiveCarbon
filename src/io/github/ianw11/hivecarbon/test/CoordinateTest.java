@@ -1,7 +1,7 @@
 package io.github.ianw11.hivecarbon.test;
 
 import io.github.ianw11.hivecarbon.graph.Coordinate;
-import io.github.ianw11.hivecarbon.piece.Piece.Location;
+import io.github.ianw11.hivecarbon.graph.GraphNode.Location;
 import io.github.ianw11.hivecarbon.test.TestDriver.TestObject;
 
 public class CoordinateTest extends TestObject {
