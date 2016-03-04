@@ -17,7 +17,7 @@ public class Test2 extends TestObject {
       
       System.out.println("1ST");
       // Moving P1-BTL from 1,0 to 0,-1 should succeed
-      movePieceExpectSuccess(playerOnePieces.get(1), graph.findGraphNode(new Coordinate(1,0)), new Coordinate(0, -1), 0, false, new int[] {-1,0,-1,1});
+      movePieceExpectSuccess(playerOnePieces.get(1), graph.getGraphNode(new Coordinate(1,0)), new Coordinate(0, -1), 0, false, new int[] {-1,0,-1,1});
       
       System.out.println("2ND");
       // Adding P2-BTL to -2,1 should succeed
@@ -25,7 +25,7 @@ public class Test2 extends TestObject {
       
       System.out.println("3RD");
       // Moving P1-BTL from 0,-1 to -1,-1 should succeed
-      movePieceExpectSuccess(playerOnePieces.get(1), graph.findGraphNode(new Coordinate(0,-1)), new Coordinate(-1, -1), 0, false, new int[] {-2,0,-1,1});
+      movePieceExpectSuccess(playerOnePieces.get(1), graph.getGraphNode(new Coordinate(0,-1)), new Coordinate(-1, -1), 0, false, new int[] {-2,0,-1,1});
       expectEqual(playerOnePieces.get(0).getNumNeighbors(), 2);
       expectEqual(playerOnePieces.get(1).getNumNeighbors(), 2);
       expectEqual(playerTwoPieces.get(0).getNumNeighbors(), 4);
@@ -34,7 +34,7 @@ public class Test2 extends TestObject {
       
       System.out.println("4TH");
       // Moving P2-BTL from -1,1 to 0,1 should succeed
-      movePieceExpectSuccess(playerTwoPieces.get(1), graph.findGraphNode(new Coordinate(-1,1)), new Coordinate(0, 1), 1, false, new int[] {-2,0,-1,1});
+      movePieceExpectSuccess(playerTwoPieces.get(1), graph.getGraphNode(new Coordinate(-1,1)), new Coordinate(0, 1), 1, false, new int[] {-2,0,-1,1});
       expectEqual(playerOnePieces.get(0).getNumNeighbors(), 3);
       expectEqual(playerOnePieces.get(1).getNumNeighbors(), 2);
       expectEqual(playerTwoPieces.get(0).getNumNeighbors(), 4);

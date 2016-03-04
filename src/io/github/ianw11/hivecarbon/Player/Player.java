@@ -17,7 +17,7 @@ public class Player {
       mId = id;
       
       // Initialize the player's pieces
-      for (Type type : Type.values()) {
+      for (final Type type : Type.values()) {
          for (int i = 0; i < type.getNumInGame(); ++i) {
             mPieces.add(new Piece(mId, type));
          }
@@ -30,20 +30,20 @@ public class Player {
    }
    
    public Piece[] getUnusedPieces() {
-      List<Piece> pieces = new ArrayList<Piece>();
-      for (Piece piece : mPieces) {
+      final List<Piece> pieces = new ArrayList<Piece>();
+      for (final Piece piece : mPieces) {
          if (!piece.isPlaced()) {
             pieces.add(piece);
          }
       }
       
-      Piece[] arr = new Piece[pieces.size()];
+      final Piece[] arr = new Piece[pieces.size()];
       pieces.toArray(arr);
       return arr;
    }
    
    public boolean isQueenPlayed() {
-      for (Piece piece : mPieces) {
+      for (final Piece piece : mPieces) {
          if (piece.isQueen() && piece.isPlaced()) {
             return true;
          }
@@ -52,7 +52,7 @@ public class Player {
    }
    
    public boolean isQueenSurrounded() {
-      for (Piece piece : mPieces) {
+      for (final Piece piece : mPieces) {
          if (piece.isQueen() && piece.isSurrounded()) {
             return true;
          }

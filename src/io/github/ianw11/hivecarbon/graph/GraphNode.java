@@ -132,7 +132,7 @@ public class GraphNode {
          return true;
       }
 
-      for (GraphNode node : mAdjacency) {
+      for (final GraphNode node : mAdjacency) {
          /* 
           * A null check is required here because this node might be a perimeter node
           * that doesn't have all neighbors initialized
@@ -169,9 +169,9 @@ public class GraphNode {
    }
    
    protected List<Coordinate> getEmptyNeighbors() {
-      List<Coordinate> ret = new ArrayList<Coordinate>();
+      final List<Coordinate> ret = new ArrayList<Coordinate>();
       
-      for (GraphNode node : mAdjacency) {
+      for (final GraphNode node : mAdjacency) {
          if (node.isActive()) {
             continue;
          }
@@ -186,11 +186,7 @@ public class GraphNode {
       mAdjacency[direction.ordinal()] = neighbor;
    }
 
-   protected void setPiece(Piece piece, boolean canGoNextToOtherColor) {
-      if (piece != null && !canPlacePiece(piece, canGoNextToOtherColor)){
-         throw new IllegalStateException("Null piece AND can't place piece -- Piece is null: " + (piece == null));
-      }
-
+   protected void setPiece(Piece piece) {
       if (piece == null) {
          mCurrentController = -1;
          mPieceStack.removeAllElements();
@@ -206,7 +202,7 @@ public class GraphNode {
    }
    
    private void updateNeighborCount() {
-      for (GraphNode neighbor : mAdjacency) {
+      for (final GraphNode neighbor : mAdjacency) {
          if (neighbor.isActive()) {
             if (isActive()) {
                // Increment each neighbor's count
@@ -226,7 +222,7 @@ public class GraphNode {
          throw new IllegalStateException("Node is not active");
       }
       
-      for (Piece piece : mPieceStack) {
+      for (final Piece piece : mPieceStack) {
          piece.removeNeighbor();
       }
    }
@@ -236,7 +232,7 @@ public class GraphNode {
          throw new IllegalStateException("Node is not active");
       }
       
-      for (Piece piece : mPieceStack) {
+      for (final Piece piece : mPieceStack) {
          piece.addNeighbor();
       }
    }
@@ -248,7 +244,7 @@ public class GraphNode {
       
       visited.add(this);
       
-      for (GraphNode node : mAdjacency) {
+      for (final GraphNode node : mAdjacency) {
          if (node.isActive() && !visited.contains(node)) {
             node.connectedNodesInternal(visited, piece);
          }

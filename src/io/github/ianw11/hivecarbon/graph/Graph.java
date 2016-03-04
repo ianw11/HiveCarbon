@@ -12,16 +12,14 @@ import io.github.ianw11.hivecarbon.piece.Piece;
 public class Graph {
    
    private static final boolean VERBOSE = false;
+   
+   
    private final Map<Coordinate, GraphNode> mGameMap;
    
    public Graph() {
       mGameMap = new HashMap<Coordinate, GraphNode>();
-      
-      final Coordinate initialCoordinate = new Coordinate(0, 0);
-      GraphNode node = new GraphNode(initialCoordinate);
-      mGameMap.put(initialCoordinate, node);
-      
-      setAdjacency(node);
+
+      createNodeAndLinkToNeighbors(new Coordinate(0, 0));
    }
    
    /**
@@ -29,7 +27,7 @@ public class Graph {
     * @param coordinate
     * @return The GraphNode if present, else null
     */
-   public GraphNode findGraphNode(Coordinate coordinate) {
+   public GraphNode getGraphNode(Coordinate coordinate) {
       return mGameMap.get(coordinate);
    }
    
@@ -39,33 +37,31 @@ public class Graph {
     * @param targetLocation The destination for the piece
     */
    public void movePiece(GraphNode oldNode, Coordinate targetLocation) {
-      GraphNode newNode = findGraphNode(targetLocation);
-      
+      final GraphNode newNode = getGraphNode(targetLocation);
       // Because of new changes, the desired GraphNode should ALWAYS exist
       if (newNode == null) {
          throw new IllegalStateException("Perimeter not being applied correctly");
       }
       
-      setAdjacency(newNode);
+      verifyPerimeterNodes(newNode);
       
       final Piece piece = oldNode.getPiece();
       
       // For some reason, you need to set null first.  Not sure why....
-      oldNode.setPiece(null, true);
-      newNode.setPiece(piece, true);
+      oldNode.setPiece(null);
+      newNode.setPiece(piece);
    }
    
-   public void playPiece(Piece piece, Coordinate coordinate, boolean canGoNextToOtherColor) {
-      GraphNode node = findGraphNode(coordinate);
-      
+   public void playPiece(Piece piece, Coordinate coordinate) {
+      final GraphNode node = getGraphNode(coordinate);
       // Because of new changes, the desired GraphNode should ALWAYS exist
       if (node == null) {
          throw new IllegalStateException("Perimeter not being applied correctly");
       }
 
-      setAdjacency(node);
+      verifyPerimeterNodes(node);
       
-      node.setPiece(piece, canGoNextToOtherColor);
+      node.setPiece(piece);
       piece.setPlaced();
    }
    
@@ -76,7 +72,7 @@ public class Graph {
     */
    public boolean isConnected(Piece piece) {
       final int targetSize = numActiveNodes() - 1;
-      for (GraphNode node : mGameMap.values()) {
+      for (final GraphNode node : mGameMap.values()) {
          if (!node.isActive() || node.getPiece() == piece) {
             continue;
          }
@@ -93,7 +89,7 @@ public class Graph {
    
    public int numActiveNodes() {
       int ret = 0;
-      for (GraphNode node : mGameMap.values()) {
+      for (final GraphNode node : mGameMap.values()) {
          if (node.isActive()) {
             ++ret;
          }
@@ -103,16 +99,16 @@ public class Graph {
    
    
    public GraphBounds getMapBounds() {
-      Builder builder = new GraphBounds.Builder();
+      final Builder builder = new GraphBounds.Builder();
 
-      for (GraphNode node : mGameMap.values()) {
+      for (final GraphNode node : mGameMap.values()) {
          if (!node.isActive()) {
             continue;
          }
          
          Coordinate coordinate = node.getCoordinate();
-         int x = coordinate.x;
-         int y = coordinate.y;
+         final int x = coordinate.x;
+         final int y = coordinate.y;
          if (VERBOSE)
             System.out.println("x: " + x + " and y: " + y);
          
@@ -127,9 +123,9 @@ public class Graph {
    }
    
    public Set<Coordinate> getPerimeter(Coordinate toExclude) {
-      Set<Coordinate> ret = new HashSet<Coordinate>();
+      final Set<Coordinate> ret = new HashSet<Coordinate>();
       
-      for (GraphNode node : mGameMap.values()) {
+      for (final GraphNode node : mGameMap.values()) {
          if (node.isActive() && !node.getCoordinate().equals(toExclude)) {
             ret.addAll(node.getEmptyNeighbors());
          }
@@ -139,48 +135,55 @@ public class Graph {
    }
    
    
-   
-   private void setAdjacency(GraphNode node) {
+   /**
+    * Forces creation of perimeter nodes if they do not exist yet.
+    * @param node
+    */
+   private void verifyPerimeterNodes(GraphNode node) {
       final Coordinate coordinate = node.getCoordinate();
       for (final HexDirection location : HexDirection.values()) {
+         // Apply each direction to the Node's coordinate
          final Coordinate neighborCoordinate = Coordinate.sum(coordinate, location.getMovementMatrix(coordinate.x));
          
-         if (findGraphNode(neighborCoordinate) == null) {
-            
+         // If the neighbor does not exist, create the neighbor as a perimeter node
+         if (getGraphNode(neighborCoordinate) == null) {
             if (VERBOSE)
                System.out.println("Creating PERIMETER GraphNode at x: " + neighborCoordinate.x + " y: " + neighborCoordinate.y);
             
-            GraphNode neighbor = new GraphNode(neighborCoordinate);
-            mGameMap.put(neighborCoordinate, neighbor);
-            applyPerimeter(neighbor);
+            createNodeAndLinkToNeighbors(neighborCoordinate);
          }
-         
       }
    }
    
-   private void applyPerimeter(GraphNode newNode) {
-      final Coordinate coordinate = newNode.getCoordinate();
+   private void createNodeAndLinkToNeighbors(Coordinate coordinate) {
+      // Create node
+      final GraphNode node = new GraphNode(coordinate);
+      mGameMap.put(coordinate, node);
       
+      // Then link to neighbors
       for (final HexDirection location : HexDirection.values()) {
-         GraphNode neighbor = findGraphNode(Coordinate.sum(coordinate, location.getMovementMatrix(coordinate.x)));
+         final Coordinate neighborCoordinate = Coordinate.sum(coordinate, location.getMovementMatrix(coordinate.x));
+         final GraphNode neighbor = getGraphNode(neighborCoordinate);
          if (neighbor == null) {
             continue;
          }
          
          if (VERBOSE)
-            System.out.println("Linking " + newNode.getCoordinate() + " to " + neighbor.getCoordinate() + " via direction: " + location.toString());
+            System.out.println("Linking " + coordinate + " to " + neighborCoordinate + " via direction: " + location);
          
-         newNode.setAdjacency(location, neighbor);
-         neighbor.setAdjacency(location.opposite(), newNode);
+         node.setAdjacency(location, neighbor);
+         neighbor.setAdjacency(location.opposite(), node);
       }
    }
+   
    
    
    
    
 
    public void renderToConsole() {
-      StringBuilder builder = new StringBuilder();
+      final StringBuilder builder = new StringBuilder();
+      
       final GraphBounds bounds = getMapBounds();
       
       final String LINE_PREFIX = "  |";
@@ -208,31 +211,27 @@ public class Graph {
          String secondXRow = LINE_PREFIX;
          // Row by row tile dump
          for (int x = bounds.MIN_X; x <= bounds.MAX_X; ++x) {
-            GraphNode currNode = findGraphNode(new Coordinate(x, y));
+            final GraphNode currNode = getGraphNode(new Coordinate(x, y));
+            
+            final String stringToDisplay;
             
             if (currNode != null && currNode.isActive()) {
-               
-               String[] potential = new String[2];
+               final String[] potential = new String[2];
                potential[0] = " p" + currNode.getCurrentController() + ": " + currNode.getPiece().getType().getShortName() + " |";
                potential[1] = String.format("  % 2d,% 2d  |", currNode.getCoordinate().x, currNode.getCoordinate().y);
-               String stringToDisplay = potential[0];
                
-               if (x % 2 == 0) {
-                  builder.append(stringToDisplay);
-                  secondXRow += MIDCELL_BLANK_SPACE;
-               } else {
-                  builder.append(MIDCELL_BLANK_SPACE);
-                  secondXRow += stringToDisplay;
-               }
+               // Toggle this array to output indices or piece info
+               stringToDisplay = potential[0];
             } else {
-               String stringToDisplay = "  EMPTY  |";
-               if (x % 2 == 0) {
-                  builder.append(stringToDisplay);
-                  secondXRow += MIDCELL_BLANK_SPACE;
-               } else {
-                  builder.append(MIDCELL_BLANK_SPACE);
-                  secondXRow += stringToDisplay;
-               }
+               stringToDisplay  = "  EMPTY  |";
+            }
+            
+            if (x % 2 == 0) {
+               builder.append(stringToDisplay);
+               secondXRow += MIDCELL_BLANK_SPACE;
+            } else {
+               builder.append(MIDCELL_BLANK_SPACE);
+               secondXRow += stringToDisplay;
             }
          }
          builder.append(NEWLINE);

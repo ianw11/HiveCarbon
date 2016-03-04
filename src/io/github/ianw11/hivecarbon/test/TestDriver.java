@@ -73,7 +73,7 @@ public class TestDriver {
       public abstract boolean run();
       
       protected boolean check(Coordinate coordinate, int player, Type type) {
-         GraphNode node = graph.findGraphNode(coordinate);
+         GraphNode node = graph.getGraphNode(coordinate);
          assert(node != null);
          assert(node.getCurrentController() == player);
          assert(node.getPiece().getType().equals(type));
@@ -81,7 +81,7 @@ public class TestDriver {
       }
       
       protected boolean checkNull(Coordinate coordinate) {
-         return graph.findGraphNode(coordinate) == null;
+         return graph.getGraphNode(coordinate) == null;
       }
       
       protected void expectEqual(Object obtained, Object expected) {
@@ -127,7 +127,7 @@ public class TestDriver {
        */
       protected void placePieceExpectFail(Piece piece, Coordinate coordinate, int playerTurn, boolean isGameFinished, int[] expectedBounds) {
          boolean pieceAlreadyAdded = placedPieces.contains(piece);
-         GraphNode node = graph.findGraphNode(coordinate);
+         GraphNode node = graph.getGraphNode(coordinate);
          boolean nodeIsNull = node == null;
          
          doActionFail(new PlaceTurnAction(piece, coordinate, playerTurn), isGameFinished, expectedBounds);

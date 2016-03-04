@@ -18,7 +18,7 @@ public class Test3 extends TestObject {
       
       System.out.println("1ST");
       // Moving P0-QNB from 0,0 to 1,-1 should fail
-      turnResult = engine.turn(new MoveTurnAction(playerOnePieces.get(0), graph.findGraphNode(new Coordinate(0, 0)), new Coordinate(1,-1), 0));
+      turnResult = engine.turn(new MoveTurnAction(playerOnePieces.get(0), graph.getGraphNode(new Coordinate(0, 0)), new Coordinate(1,-1), 0));
       {
          assert(turnResult == false);
          assert(engine.isGameFinished() == false);
@@ -32,7 +32,7 @@ public class Test3 extends TestObject {
       
       System.out.println("2ND");
       // Moving P1-QNB from -1,0 to -2,1 should fail
-      turnResult = engine.turn(new MoveTurnAction(playerTwoPieces.get(0), graph.findGraphNode(new Coordinate(-1, 0)), new Coordinate(-2,-1), 1));
+      turnResult = engine.turn(new MoveTurnAction(playerTwoPieces.get(0), graph.getGraphNode(new Coordinate(-1, 0)), new Coordinate(-2,-1), 1));
       {
          assert(turnResult == false);
          assert(engine.isGameFinished() == false);

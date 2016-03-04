@@ -55,7 +55,6 @@ public class GraphBounds {
       }
       
       public GraphBounds build() {
-         
          return new GraphBounds(minX, maxX, minY, maxY);
       }
    }

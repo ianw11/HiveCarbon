@@ -22,7 +22,7 @@ public class Coordinate {
    }
    
    public static Coordinate sum(Coordinate c1, HexDirection l, int xCoord) {
-      int[] matrix = l.getMovementMatrix(xCoord);
+      final int[] matrix = l.getMovementMatrix(xCoord);
       return new Coordinate(c1.x + matrix[0], c1.y + matrix[1]);
    }
    
@@ -35,7 +35,7 @@ public class Coordinate {
       if (!(obj instanceof Coordinate)) {
          return false;
       }
-      Coordinate that = (Coordinate)obj;
+      final Coordinate that = (Coordinate)obj;
       
       return this.x == that.x && this.y == that.y;
    }

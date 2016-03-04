@@ -125,18 +125,17 @@ public class RulesEngine {
       }
 
       boolean canGoNextToOtherColor = mGameTurn < 3 || mGraph.numActiveNodes() < 3;
-
       if (!isDestinationOk(coordinate, piece, canGoNextToOtherColor) || piece.isPlaced()) {
          return false;
       }
       
-      mGraph.playPiece(piece, coordinate, canGoNextToOtherColor);
+      mGraph.playPiece(piece, coordinate);
 
       return true;
    }
    
    private boolean isDestinationOk(Coordinate coordinate, Piece piece, boolean canGoNextToOtherColor) {
-      GraphNode target = mGraph.findGraphNode(coordinate);
+      GraphNode target = mGraph.getGraphNode(coordinate);
       if (target == null) {
          return true;
       }
