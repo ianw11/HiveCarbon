@@ -5,8 +5,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import com.sun.javafx.binding.StringFormatter;
-
 import io.github.ianw11.hivecarbon.graph.GraphBounds.Builder;
 import io.github.ianw11.hivecarbon.graph.GraphNode.HexDirection;
 import io.github.ianw11.hivecarbon.piece.Piece;
@@ -216,7 +214,7 @@ public class Graph {
                
                String[] potential = new String[2];
                potential[0] = " p" + currNode.getCurrentController() + ": " + currNode.getPiece().getType().getShortName() + " |";
-               potential[1] = StringFormatter.format("  % 2d,% 2d  |", currNode.getCoordinate().x, currNode.getCoordinate().y).get();
+               potential[1] = String.format("  % 2d,% 2d  |", currNode.getCoordinate().x, currNode.getCoordinate().y);
                String stringToDisplay = potential[0];
                
                if (x % 2 == 0) {
