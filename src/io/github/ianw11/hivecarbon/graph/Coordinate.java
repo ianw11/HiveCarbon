@@ -1,6 +1,6 @@
 package io.github.ianw11.hivecarbon.graph;
 
-import io.github.ianw11.hivecarbon.graph.GraphNode.Location;
+import io.github.ianw11.hivecarbon.graph.GraphNode.HexDirection;
 
 public class Coordinate {
    
@@ -11,6 +11,21 @@ public class Coordinate {
       this.x = x;
       this.y = y;
    }
+   
+   public static Coordinate sum(Coordinate c1, Coordinate c2) {
+      return new Coordinate(c1.x + c2.x, c1.y + c2.y);
+   }
+   
+   public static Coordinate sum(Coordinate c1, int[] arr) {
+      assert(arr.length == 2);
+      return new Coordinate(c1.x + arr[0], c1.y + arr[1]);
+   }
+   
+   public static Coordinate sum(Coordinate c1, HexDirection l, int xCoord) {
+      int[] matrix = l.getMovementMatrix(xCoord);
+      return new Coordinate(c1.x + matrix[0], c1.y + matrix[1]);
+   }
+   
    
    @Override
    public boolean equals(Object obj) {
@@ -30,18 +45,12 @@ public class Coordinate {
       return "[Coordinate (" + x + ", " + y + ")]";
    }
    
-   public static Coordinate sum(Coordinate c1, Coordinate c2) {
-      return new Coordinate(c1.x + c2.x, c1.y + c2.y);
-   }
-   
-   public static Coordinate sum(Coordinate c1, int[] arr) {
-      assert(arr.length == 2);
-      return new Coordinate(c1.x + arr[0], c1.y + arr[1]);
-   }
-   
-   public static Coordinate sum(Coordinate c1, Location l, int xCoord) {
-      int[] matrix = l.getMovementMatrix(xCoord);
-      return new Coordinate(c1.x + matrix[0], c1.y + matrix[1]);
+   @Override
+   public int hashCode() {
+      int hash = 17;
+      hash = ((hash + x) << 5) - (hash + x);
+      hash = ((hash + y) << 5) - (hash + y);
+      return hash;
    }
 
 }

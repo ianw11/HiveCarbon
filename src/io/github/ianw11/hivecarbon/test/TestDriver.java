@@ -28,11 +28,11 @@ public class TestDriver {
       //////////////////////////
       
       
-      //tests.add(new CoordinateTest());
-      //tests.add(new Test1());
+      tests.add(new CoordinateTest());
+      tests.add(new Test1());
       tests.add(new Test2());
-      //tests.add(new Test3());
-      //tests.add(new Test4());
+      tests.add(new Test3());
+      tests.add(new Test4());
       //tests.add(new UITest());
       
       
@@ -43,9 +43,11 @@ public class TestDriver {
       
       for (TestObject test : tests) {
          test.printTestInfo();
+         System.out.println();
+         System.out.flush();
          if (!test.run()) {
-            System.out.println("FAILURE IN TEST");
-            break;
+            System.err.println("FAILURE IN TEST");
+            return;
          }  
       }
       
@@ -82,13 +84,17 @@ public class TestDriver {
          return graph.findGraphNode(coordinate) == null;
       }
       
-      protected void expectEqual(Object one, Object two) {
-         assert(one.equals(two));
+      protected void expectEqual(Object obtained, Object expected) {
+         try {
+            assert(obtained.equals(expected));
+         } catch (AssertionError e) {
+            System.err.println(obtained + " does not equal expected: " + expected);
+            throw e;
+         }
       }
       
       protected void verifyBounds(int minX, int maxX, int minY, int maxY) {
          bounds = graph.getMapBounds();
-         System.out.println(bounds.toString());
          expectEqual(bounds.MIN_X, minX);
          expectEqual(bounds.MAX_X, maxX);
          expectEqual(bounds.MIN_Y, minY);

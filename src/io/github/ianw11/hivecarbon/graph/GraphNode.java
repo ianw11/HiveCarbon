@@ -5,10 +5,12 @@ import java.util.List;
 import java.util.Stack;
 
 import io.github.ianw11.hivecarbon.piece.Piece;
+import io.github.ianw11.hivecarbon.piece.Piece.Type;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public class GraphNode {
    
-   public enum Location {
+   public enum HexDirection {
       TOP (new int[] {0,-1}),
       TOP_RIGHT (new int[] {1,-1}),
       BOTTOM_RIGHT (new int[] {1,0}),
@@ -17,7 +19,7 @@ public class GraphNode {
       TOP_LEFT (new int[] {-1,-1});
       
       private final int[] movementMatrix;
-      private Location(int[] matrix) {
+      private HexDirection(int[] matrix) {
          movementMatrix = matrix;
       }
       
@@ -29,7 +31,7 @@ public class GraphNode {
          }
       }
       
-      public Location opposite() {
+      public HexDirection opposite() {
          switch(this) {
          case TOP:
             return BOTTOM;
@@ -64,50 +66,129 @@ public class GraphNode {
    };
 
    private final Coordinate mCoordinate;
-   private Stack<Piece> mPieceStack;
    private final GraphNode[] mAdjacency = new GraphNode[6];
 
+   private Stack<Piece> mPieceStack = null;
    private int mCurrentController;
+   
+   // Used to hold visited nodes when performing the DFS.  Allocated once for ease.
+   private final List<GraphNode> mRecursionDirtyList = new ArrayList<GraphNode>();
 
    public GraphNode(Coordinate coordinate) {
       mCoordinate = coordinate;
    }
 
    /**
-    * @param location The location of THIS node's connection
-    * @param neighbor
+    * Returns the coordinate of this node
+    * @return
     */
-   protected void setAdjacency(Location location, GraphNode neighbor) {
-      mAdjacency[location.ordinal()] = neighbor;
-   }
-
    public Coordinate getCoordinate() {
       return mCoordinate;
    }
+   
+   /**
+    * Returns if this node has a piece on it
+    * @return True if there is at least one piece on this node
+    */
+   public boolean isActive() {
+      return mPieceStack != null;
+   }
 
-   public boolean canSetPiece(Piece piece, boolean canGoNextToOtherColor) {
+   /**
+    * Returns the piece on this node
+    * @return This node's piece
+    */
+   public Piece getPiece() {
+      if (!isActive()) {
+         throw new IllegalStateException("Getting piece on inactive node");
+      }
+      return mPieceStack.peek();
+   }
+
+   /**
+    * Gets the controller of the top piece on this node
+    * @return The id of the controlling player
+    */
+   public int getCurrentController() {
+      if (!isActive()) {
+         throw new IllegalStateException("Getting controller from inactive node");
+      }
+      return mCurrentController;
+   }
+
+   /**
+    * Determines if a piece can go on this node.  Beetles use canStackPiece
+    * @param piece The piece to be placed
+    * @param canGoNextToOtherColor Used in early turns to allow the first couple pieces to be played
+    * @return True if the piece can be placed here
+    */
+   public boolean canPlacePiece(Piece piece, boolean canGoNextToOtherColor) {
       // If this node already has a piece
-      if (mPieceStack != null) {
+      if (isActive()) {
          return false;
       }
-
+      
       if (canGoNextToOtherColor) {
          return true;
       }
 
       for (GraphNode node : mAdjacency) {
-         if (node != null && node.getCurrentController() != piece.getOwnerNumber()) {
-            System.out.println("Failed on color check");
+         /* 
+          * A null check is required here because this node might be a perimeter node
+          * that doesn't have all neighbors initialized
+          */
+         if (node != null && node.isActive() && node.getCurrentController() != piece.getOwnerNumber()) {
+            System.err.println("Failed on color check");
             return false;
          }
       }
 
       return true;
    }
+   
+   /**
+    * Determines if a piece can climb on top of this node.
+    * @param piece The piece (beetle only) attempting to climb
+    * @return True if the piece is a beetle and can climb on top
+    */
+   public boolean canStackPiece(Piece piece) {
+      // If not active and piece is not a beetle
+      if (!isActive() || piece.getType().compareTo(Type.BEETLE) != 0) {
+         return false;
+      }
+      
+      throw new NotImplementedException();
+      //return true;
+   }
+   
+   
+   protected int connectedNodes(Piece piece) {
+      mRecursionDirtyList.clear();
+      connectedNodesInternal(mRecursionDirtyList, piece);
+      return mRecursionDirtyList.size();
+   }
+   
+   protected List<Coordinate> getEmptyNeighbors() {
+      List<Coordinate> ret = new ArrayList<Coordinate>();
+      
+      for (GraphNode node : mAdjacency) {
+         if (node.isActive()) {
+            continue;
+         }
+         
+         ret.add(node.getCoordinate());
+      }
+      
+      return ret;
+   }
+   
+   protected void setAdjacency(HexDirection direction, GraphNode neighbor) {
+      mAdjacency[direction.ordinal()] = neighbor;
+   }
 
    protected void setPiece(Piece piece, boolean canGoNextToOtherColor) {
-      if (piece != null && !canSetPiece(piece, canGoNextToOtherColor)){
-         throw new IllegalStateException();
+      if (piece != null && !canPlacePiece(piece, canGoNextToOtherColor)){
+         throw new IllegalStateException("Null piece AND can't place piece -- Piece is null: " + (piece == null));
       }
 
       if (piece == null) {
@@ -118,16 +199,23 @@ public class GraphNode {
          mPieceStack = new Stack<Piece>();
          mPieceStack.add(piece);
          mCurrentController = piece.getOwnerNumber();
-         //piece.removeAllNeighbors();
+         piece.removeAllNeighbors();
       }
-
+      
+      updateNeighborCount();
+   }
+   
+   private void updateNeighborCount() {
       for (GraphNode neighbor : mAdjacency) {
          if (neighbor.isActive()) {
-            if (mPieceStack == null) {
-               neighbor.byeNeighbor();
-            } else {
+            if (isActive()) {
+               // Increment each neighbor's count
                neighbor.newNeighbor();
+               // And increment this piece's count for the neighbor
                newNeighbor();
+            } else {
+               // If this node is empty, decrement each neighbor's count
+               neighbor.byeNeighbor();
             }
          }
       }
@@ -139,7 +227,7 @@ public class GraphNode {
       }
       
       for (Piece piece : mPieceStack) {
-         //piece.removeNeighbor();
+         piece.removeNeighbor();
       }
    }
 
@@ -149,84 +237,21 @@ public class GraphNode {
       }
       
       for (Piece piece : mPieceStack) {
-         //piece.addNeighbor();
+         piece.addNeighbor();
       }
    }
-
    
-   
-   public boolean isActive() {
-      return mPieceStack != null;
-   }
-
-   public Piece getPiece() {
-      return mPieceStack.peek();
-   }
-
-   public int getCurrentController() {
-      return mCurrentController;
-   }
-
-   public GraphNode findGraphNode(Coordinate coordinate) {
-      return findGraphNodeInternal(coordinate, new ArrayList<GraphNode>());
-   }
-
-   private GraphNode findGraphNodeInternal(Coordinate coordinate, List<GraphNode> visited) {
-      if (mCoordinate.equals(coordinate)) {
-         return this;
-      }
-      
-      visited.add(this);
-      
-      for (GraphNode node : mAdjacency) {
-         if (node != null && !visited.contains(node)) {
-            GraphNode ret = node.findGraphNodeInternal(coordinate, visited);
-            if (ret != null) {
-               return ret;
-            }
-         }
-      }
-      
-      return null;
-   }
-   
-   public int connectedNodes(Piece piece) {
-      ArrayList<GraphNode> visited = new ArrayList<GraphNode>();
-      connectedNodesInternal(visited, piece);
-      return visited.size();
-   }
-   
-   private void connectedNodesInternal(ArrayList<GraphNode> visited, Piece piece) {
+   private void connectedNodesInternal(List<GraphNode> visited, Piece piece) {
       if (piece.equals(mPieceStack.peek())) {
          return;
       }
       
-      System.out.println("Working on coordinate " + mCoordinate);
       visited.add(this);
       
       for (GraphNode node : mAdjacency) {
-         System.out.println("Node: " + node.getCoordinate());
          if (node.isActive() && !visited.contains(node)) {
             node.connectedNodesInternal(visited, piece);
          }
       }
    }
-   
-   public List<Coordinate> getEmptyNeighbors(Coordinate toIgnore) {
-      List<Coordinate> ret = new ArrayList<Coordinate>();
-      
-      for (GraphNode node : mAdjacency) {
-         if (node.isActive()) {
-            continue;
-         }
-         
-         Coordinate coordinate = node.getCoordinate();
-         if (!coordinate.equals(toIgnore)) {
-            ret.add(coordinate);
-         }
-      }
-      
-      return ret;
-   }
-
 }

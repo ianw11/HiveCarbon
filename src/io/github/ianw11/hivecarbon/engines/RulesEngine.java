@@ -26,12 +26,13 @@ public class RulesEngine {
       
       mGraph = new Graph();
    }
-   
-   public Piece[] getUnusedPieces(int playerNum) {
-      return mPlayers.get(playerNum).getUnusedPieces();
-   }
 
    // TURN is the main method here
+   /**
+    * Take a game turn, performing the TurnAction
+    * @param turnAction The action to perform this turn
+    * @return True if successful
+    */
    public boolean turn(TurnAction turnAction) {
       boolean ret = false;
 
@@ -50,7 +51,31 @@ public class RulesEngine {
 
       return ret;
    }
+   
+   /**
+    * Returns if the game is completed.
+    * @return True if the game is completed.
+    */
+   public boolean isGameFinished() {
+      boolean ret = false;
+      for (Player player : mPlayers) {
+         ret |= player.isQueenSurrounded();
+      }
+      return ret;
+   }
+   
+   /*
+    * Get an array of unused pieces from a Player
+    * @param playerNum The desired player
+    * @return An array of all unused pieces
+    */
+   /*
+   private Piece[] getUnusedPieces(int playerNum) {
+      return mPlayers.get(playerNum).getUnusedPieces();
+   }
+   */
 
+   
    private void incrementTurnNumbers() {
       if (++mPlayerTurn == mPlayers.size()) {
          mPlayerTurn = 0;
@@ -68,21 +93,17 @@ public class RulesEngine {
       final Coordinate coordinate = action.mCoordinate;
       final Piece piece = action.mPiece;
       
+      System.out.println("Moving piece " + piece + " to " + coordinate + " from " + oldNode.getCoordinate());
+      
       if (!isDestinationOk(coordinate, piece, true) || !pieceCanMove(coordinate, piece) || !mGraph.isConnected(piece)) {
          return false;
       }
       
-      mGraph.movePiece(oldNode, coordinate, piece);
+      mGraph.movePiece(oldNode, coordinate);
       
       return true;
    }
    
-   /**
-    * Verifies a piece can actually move to the coordinate
-    * @param coordinate Destination
-    * @param piece The piece that wants to move
-    * @return If the move is legal
-    */
    private boolean pieceCanMove(Coordinate coordinate, Piece piece) {
       //final GraphNode destination = mGraph.findGraphNode(coordinate);
       return true;
@@ -121,22 +142,16 @@ public class RulesEngine {
       }
 
       if (mGameTurn == 4 && !mPlayers.get(mPlayerTurn).isQueenPlayed()) {
-         System.out.println("Queen not yet played");
+         System.err.println("Queen not yet played");
          return false;
       }
 
-      return target.canSetPiece(piece, canGoNextToOtherColor);
+      return target.canPlacePiece(piece, canGoNextToOtherColor);
    }
 
    
    
-   public boolean isGameFinished() {
-      boolean ret = false;
-      for (Player player : mPlayers) {
-         ret |= player.isQueenSurrounded();
-      }
-      return ret;
-   }
+   
 
    
    /**

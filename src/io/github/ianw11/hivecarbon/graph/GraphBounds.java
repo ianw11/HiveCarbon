@@ -15,6 +15,13 @@ public class GraphBounds {
       return "Bounds -- MIN_X: " + MIN_X + " MAX_X: " + MAX_X + " MIN_Y: " + MIN_Y + " MAX_Y: " + MAX_Y;
    }
    
+   public boolean isPointInside(Coordinate coordinate) {
+      return   coordinate.x >= MIN_X &&
+               coordinate.x <= MAX_X &&
+               coordinate.y >= MIN_Y &&
+               coordinate.y <= MAX_Y;
+   }
+   
    
    
    public static class Builder {

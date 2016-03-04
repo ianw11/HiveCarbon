@@ -1,35 +1,46 @@
 package io.github.ianw11.hivecarbon.graph;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 
 import com.sun.javafx.binding.StringFormatter;
 
 import io.github.ianw11.hivecarbon.graph.GraphBounds.Builder;
-import io.github.ianw11.hivecarbon.graph.GraphNode.Location;
+import io.github.ianw11.hivecarbon.graph.GraphNode.HexDirection;
 import io.github.ianw11.hivecarbon.piece.Piece;
 
 public class Graph {
    
    private static final boolean VERBOSE = false;
-   
-   private final ArrayList<GraphNode> mGameMap = new ArrayList<GraphNode>();
+   private final Map<Coordinate, GraphNode> mGameMap;
    
    public Graph() {
-      createGraphNodeInternal(new Coordinate(0,0));
+      mGameMap = new HashMap<Coordinate, GraphNode>();
+      
+      final Coordinate initialCoordinate = new Coordinate(0, 0);
+      GraphNode node = new GraphNode(initialCoordinate);
+      mGameMap.put(initialCoordinate, node);
+      
+      setAdjacency(node);
    }
    
-   public Iterator<GraphNode> getIterator() {
-      return mGameMap.iterator();
-   }
-   
+   /**
+    * Returns the GraphNode at the given coordinate
+    * @param coordinate
+    * @return The GraphNode if present, else null
+    */
    public GraphNode findGraphNode(Coordinate coordinate) {
-      return mGameMap.get(0).findGraphNode(coordinate);
+      return mGameMap.get(coordinate);
    }
    
-   public void movePiece(GraphNode oldNode, Coordinate targetLocation, Piece piece) {
+   /**
+    * Moves a piece from a GraphNode to a target Coordinate.
+    * @param oldNode The node the piece is currently on
+    * @param targetLocation The destination for the piece
+    */
+   public void movePiece(GraphNode oldNode, Coordinate targetLocation) {
       GraphNode newNode = findGraphNode(targetLocation);
       
       // Because of new changes, the desired GraphNode should ALWAYS exist
@@ -37,10 +48,13 @@ public class Graph {
          throw new IllegalStateException("Perimeter not being applied correctly");
       }
       
+      setAdjacency(newNode);
+      
+      final Piece piece = oldNode.getPiece();
+      
+      // For some reason, you need to set null first.  Not sure why....
       oldNode.setPiece(null, true);
       newNode.setPiece(piece, true);
-      
-      setAdjacency(newNode);
    }
    
    public void playPiece(Piece piece, Coordinate coordinate, boolean canGoNextToOtherColor) {
@@ -51,58 +65,11 @@ public class Graph {
          throw new IllegalStateException("Perimeter not being applied correctly");
       }
 
-      node.setPiece(piece, canGoNextToOtherColor);
       setAdjacency(node);
+      
+      node.setPiece(piece, canGoNextToOtherColor);
       piece.setPlaced();
    }
-   
-   
-   private GraphNode createGraphNodeInternal(final Coordinate coordinate) {
-      //if (VERBOSE)
-         System.out.println("Creating GraphNode at x: " + coordinate.x + " y: " + coordinate.y);
-      
-      GraphNode node = new GraphNode(coordinate);
-      mGameMap.add(node);
-      
-      setAdjacency(node);
-      
-      return node;
-   }
-   
-   private void setAdjacency(GraphNode node) {
-      final Coordinate coordinate = node.getCoordinate();
-      for (final Location location : Location.values()) {
-         final Coordinate neighborCoordinate = Coordinate.sum(coordinate, location.getMovementMatrix(coordinate.x));
-         
-         if (findGraphNode(neighborCoordinate) == null) {
-            //if (VERBOSE)
-               System.out.println("Creating PERIMETER GraphNode at x: " + neighborCoordinate.x + " y: " + neighborCoordinate.y);
-            
-            GraphNode neighbor = new GraphNode(neighborCoordinate);
-            applyPerimeter(neighbor);
-         }
-         
-      }
-   }
-   
-   private void applyPerimeter(GraphNode newNode) {
-      final Coordinate coordinate = newNode.getCoordinate();
-      
-      for (final Location location : Location.values()) {
-         GraphNode neighbor = mGameMap.get(0).findGraphNode(Coordinate.sum(coordinate, location.getMovementMatrix(coordinate.x)));
-         if (neighbor == null) {
-            continue;
-         }
-         
-         if (VERBOSE)
-            System.out.println("Linking " + newNode.getCoordinate() + " to " + neighbor.getCoordinate() + " via direction: " + location.toString());
-         
-         newNode.setAdjacency(location, neighbor);
-         neighbor.setAdjacency(location.opposite(), newNode);
-      }
-   }
-   
-   
    
    /**
     * See if all pieces are still connected after the parameter piece is removed
@@ -111,7 +78,7 @@ public class Graph {
     */
    public boolean isConnected(Piece piece) {
       final int targetSize = numActiveNodes() - 1;
-      for (GraphNode node : mGameMap) {
+      for (GraphNode node : mGameMap.values()) {
          if (!node.isActive() || node.getPiece() == piece) {
             continue;
          }
@@ -128,7 +95,7 @@ public class Graph {
    
    public int numActiveNodes() {
       int ret = 0;
-      for (GraphNode node : mGameMap) {
+      for (GraphNode node : mGameMap.values()) {
          if (node.isActive()) {
             ++ret;
          }
@@ -140,7 +107,7 @@ public class Graph {
    public GraphBounds getMapBounds() {
       Builder builder = new GraphBounds.Builder();
 
-      for (GraphNode node : mGameMap) {
+      for (GraphNode node : mGameMap.values()) {
          if (!node.isActive()) {
             continue;
          }
@@ -148,7 +115,7 @@ public class Graph {
          Coordinate coordinate = node.getCoordinate();
          int x = coordinate.x;
          int y = coordinate.y;
-         //if (VERBOSE)
+         if (VERBOSE)
             System.out.println("x: " + x + " and y: " + y);
          
          builder.setX(x);
@@ -164,12 +131,53 @@ public class Graph {
    public Set<Coordinate> getPerimeter(Coordinate toExclude) {
       Set<Coordinate> ret = new HashSet<Coordinate>();
       
-      for (GraphNode node : mGameMap) {
-         ret.addAll(node.getEmptyNeighbors(toExclude));
+      for (GraphNode node : mGameMap.values()) {
+         if (node.isActive() && !node.getCoordinate().equals(toExclude)) {
+            ret.addAll(node.getEmptyNeighbors());
+         }
       }
       
       return ret;
    }
+   
+   
+   
+   private void setAdjacency(GraphNode node) {
+      final Coordinate coordinate = node.getCoordinate();
+      for (final HexDirection location : HexDirection.values()) {
+         final Coordinate neighborCoordinate = Coordinate.sum(coordinate, location.getMovementMatrix(coordinate.x));
+         
+         if (findGraphNode(neighborCoordinate) == null) {
+            
+            if (VERBOSE)
+               System.out.println("Creating PERIMETER GraphNode at x: " + neighborCoordinate.x + " y: " + neighborCoordinate.y);
+            
+            GraphNode neighbor = new GraphNode(neighborCoordinate);
+            mGameMap.put(neighborCoordinate, neighbor);
+            applyPerimeter(neighbor);
+         }
+         
+      }
+   }
+   
+   private void applyPerimeter(GraphNode newNode) {
+      final Coordinate coordinate = newNode.getCoordinate();
+      
+      for (final HexDirection location : HexDirection.values()) {
+         GraphNode neighbor = findGraphNode(Coordinate.sum(coordinate, location.getMovementMatrix(coordinate.x)));
+         if (neighbor == null) {
+            continue;
+         }
+         
+         if (VERBOSE)
+            System.out.println("Linking " + newNode.getCoordinate() + " to " + neighbor.getCoordinate() + " via direction: " + location.toString());
+         
+         newNode.setAdjacency(location, neighbor);
+         neighbor.setAdjacency(location.opposite(), newNode);
+      }
+   }
+   
+   
    
    
 
@@ -202,7 +210,7 @@ public class Graph {
          String secondXRow = LINE_PREFIX;
          // Row by row tile dump
          for (int x = bounds.MIN_X; x <= bounds.MAX_X; ++x) {
-            GraphNode currNode = mGameMap.get(0).findGraphNode(new Coordinate(x, y));
+            GraphNode currNode = findGraphNode(new Coordinate(x, y));
             
             if (currNode != null && currNode.isActive()) {
                

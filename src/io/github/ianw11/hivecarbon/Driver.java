@@ -1,8 +1,6 @@
 package io.github.ianw11.hivecarbon;
 
-import java.awt.Color;
 import java.awt.Container;
-import java.util.Iterator;
 
 import javax.swing.JFrame;
 import javax.swing.JList;
@@ -14,15 +12,8 @@ import io.github.ianw11.hivecarbon.engines.PlaceTurnAction;
 import io.github.ianw11.hivecarbon.engines.RulesEngine;
 import io.github.ianw11.hivecarbon.engines.TurnAction;
 import io.github.ianw11.hivecarbon.graph.Coordinate;
-import io.github.ianw11.hivecarbon.graph.Graph;
-import io.github.ianw11.hivecarbon.graph.GraphBounds;
-import io.github.ianw11.hivecarbon.graph.GraphNode;
 import io.github.ianw11.hivecarbon.piece.Piece;
-import io.github.ianw11.hivecarbon.piece.Piece.Type;
-import io.github.ianw11.hivecarbon.ui.BasicMouseListener;
 import io.github.ianw11.hivecarbon.ui.BasicMouseListener.MouseActionListener;
-import io.github.ianw11.hivecarbon.ui.GameBoard;
-import io.github.ianw11.hivecarbon.ui.Hex;
 import io.github.ianw11.hivecarbon.ui.HexMech;
 import io.github.ianw11.hivecarbon.ui.tilepool.TilePoolListView;
 
@@ -89,6 +80,7 @@ public class Driver implements MouseActionListener {
    }
 
    private void buildBoard() {
+      /*
       GraphBounds bounds = mEngine.getNormalizedBounds();
       int[] shiftXY = mEngine.getShift();
 
@@ -136,6 +128,7 @@ public class Driver implements MouseActionListener {
 
       updateFrame(mPanel, BOARD, (int)(SCRSIZE/1.23), SCRSIZE);
       updateTilePoolFrame(0);
+      */
    }
    
    private void initGUI() {
@@ -193,11 +186,13 @@ public class Driver implements MouseActionListener {
    }
 
    private void updateTilePoolFrame(int playerNum) {
+      /*
       JList<Piece> list = new TilePoolListView(mEngine.getUnusedPieces(playerNum));
       
       Container pane = mTilePoolFrame.getContentPane();
       pane.add(list, 0);
       pane.revalidate();
+      */
    }
 
    // MAIN METHOD

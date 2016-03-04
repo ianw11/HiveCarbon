@@ -63,7 +63,7 @@ public class Piece {
       return mType.equals(Type.QUEEN_BEE);
    }
    
-   /*
+   
    public void addNeighbor() {
       if (++mNumNeighbors > 6) {
          throw new IllegalStateException("More than 6 neighbors for tile");
@@ -83,8 +83,10 @@ public class Piece {
    public boolean isSurrounded() {
       return mNumNeighbors == 6;
    }
+   
+   
+   
    public int getNumNeighbors() {
       return mNumNeighbors;
    }
-    */
 }
