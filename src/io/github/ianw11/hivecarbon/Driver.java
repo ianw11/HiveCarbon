@@ -33,7 +33,6 @@ public class Driver implements MouseActionListener {
 
    private RulesEngine mEngine;
    private JFrame mFrame;
-   
    private JFrame mTilePoolFrame;
 
    private int boardX, boardY;
@@ -136,21 +135,21 @@ public class Driver implements MouseActionListener {
 
       mFrame = new JFrame("Hive");
       mFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+      mFrame.setResizable(false);
+      mFrame.setLocationRelativeTo(null);
+      mFrame.setVisible(true);
 
       boardX = boardY = tileX = tileY = 0;
 
       //buildTilePool();
-
-      mFrame.setResizable(false);
-      mFrame.setLocationRelativeTo(null);
-      mFrame.setVisible(true);
       
-      
+      /*
       mTilePoolFrame = new JFrame("Tile Pool");
       mTilePoolFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
       mTilePoolFrame.setResizable(true);
       mTilePoolFrame.setLocationRelativeTo(mFrame);
       mTilePoolFrame.setVisible(true);
+      */
       
    }
 

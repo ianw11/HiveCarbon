@@ -52,6 +52,11 @@ public class CoordinateTest extends TestObject {
       c = Coordinate.sum(base, HexDirection.TOP_LEFT, 1);
       expectEqual(c, new Coordinate(-1, 0));
       
+      
+      Coordinate hashC = new Coordinate(1, 1);
+      c = new Coordinate(1,1);
+      expectEqual(c.hashCode(), hashC.hashCode());
+      
       return true;
    }
    
