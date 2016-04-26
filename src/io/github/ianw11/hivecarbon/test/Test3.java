@@ -18,33 +18,33 @@ public class Test3 extends TestObject {
       
       System.out.println("1ST");
       // Moving P0-QNB from 0,0 to 1,-1 should fail
-      turnResult = engine.turn(new MoveTurnAction(playerOnePieces.get(0), graph.getGraphNode(new Coordinate(0, 0)), new Coordinate(1,-1), 0));
+      turnResult = engine.turn(new MoveTurnAction(new Coordinate(0, 0), new Coordinate(1,-1), players.get(0)));
       {
          assert(turnResult == false);
          assert(engine.isGameFinished() == false);
          verifyBounds(-1, 1, 0, 1);
          assert(playerOnePieces.get(1).isPlaced());
-         check(new Coordinate(0, 0), 0, Type.QUEEN_BEE);
-         check(new Coordinate(1, 0), 0, Type.BEETLE);
-         check(new Coordinate(-1, 0), 1, Type.QUEEN_BEE);
-         check(new Coordinate(-1, 1), 1, Type.BEETLE);
+         check(new Coordinate(0, 0), players.get(0), Type.QUEEN_BEE);
+         check(new Coordinate(1, 0), players.get(0), Type.BEETLE);
+         check(new Coordinate(-1, 0), players.get(1), Type.QUEEN_BEE);
+         check(new Coordinate(-1, 1), players.get(1), Type.BEETLE);
       }
       
       System.out.println("2ND");
       // Moving P1-QNB from -1,0 to -2,1 should fail
-      turnResult = engine.turn(new MoveTurnAction(playerTwoPieces.get(0), graph.getGraphNode(new Coordinate(-1, 0)), new Coordinate(-2,-1), 1));
+      turnResult = engine.turn(new MoveTurnAction(new Coordinate(-1, 0), new Coordinate(-2,-1), players.get(1)));
       {
          assert(turnResult == false);
          assert(engine.isGameFinished() == false);
          verifyBounds(-1, 1, 0, 1);
          assert(playerOnePieces.get(1).isPlaced());
-         check(new Coordinate(0, 0), 0, Type.QUEEN_BEE);
-         check(new Coordinate(1, 0), 0, Type.BEETLE);
-         check(new Coordinate(-1, 0), 1, Type.QUEEN_BEE);
-         check(new Coordinate(-1, 1), 1, Type.BEETLE);
+         check(new Coordinate(0, 0), players.get(0), Type.QUEEN_BEE);
+         check(new Coordinate(1, 0), players.get(0), Type.BEETLE);
+         check(new Coordinate(-1, 0), players.get(1), Type.QUEEN_BEE);
+         check(new Coordinate(-1, 1), players.get(1), Type.BEETLE);
       }
       
-      graph.renderToConsole();
+      hexGraph.renderToConsole();
       
       return true;
    }
@@ -52,15 +52,15 @@ public class Test3 extends TestObject {
    
    private void setup() {
       // Adding P1-QNB to 0,0 should succeed
-      placePieceExpectSuccess(playerOnePieces.get(0), new Coordinate(0,0), 0, false, new int[] {0,0,0,0});
+      placePieceExpectSuccess(playerOnePieces.get(0), new Coordinate(0,0), players.get(0), false, new int[] {0,0,0,0});
       
       // Adding P2-QNB to -1,0 should succeed
-      placePieceExpectSuccess(playerTwoPieces.get(0), new Coordinate(-1,0), 1, false, new int[] {-1,0,0,0});
+      placePieceExpectSuccess(playerTwoPieces.get(0), new Coordinate(-1,0), players.get(1), false, new int[] {-1,0,0,0});
       
       // Adding P1-BTL to 1,0 should succeed
-      placePieceExpectSuccess(playerOnePieces.get(1), new Coordinate(1,0), 0, false, new int[] {-1,1,0,0});
+      placePieceExpectSuccess(playerOnePieces.get(1), new Coordinate(1,0), players.get(0), false, new int[] {-1,1,0,0});
       
       // Adding P2-BTL to -1,1 should succeed
-      placePieceExpectSuccess(playerTwoPieces.get(1), new Coordinate(-1,1), 1, false, new int[] {-1,1,0,1});
+      placePieceExpectSuccess(playerTwoPieces.get(1), new Coordinate(-1,1), players.get(1), false, new int[] {-1,1,0,1});
    }
 }

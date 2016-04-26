@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
+import io.github.ianw11.hivecarbon.Player.Player;
 import io.github.ianw11.hivecarbon.piece.Piece;
 import io.github.ianw11.hivecarbon.piece.Piece.Type;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
@@ -69,7 +70,7 @@ public class GraphNode {
    private final GraphNode[] mAdjacency = new GraphNode[6];
 
    private Stack<Piece> mPieceStack = null;
-   private int mCurrentController;
+   private Player mCurrentController;
    
    // Used to hold visited nodes when performing the DFS.  Allocated once for ease.
    private final List<GraphNode> mRecursionDirtyList = new ArrayList<GraphNode>();
@@ -109,11 +110,21 @@ public class GraphNode {
     * Gets the controller of the top piece on this node
     * @return The id of the controlling player
     */
-   public int getCurrentController() {
+   public Player getCurrentController() {
       if (!isActive()) {
          throw new IllegalStateException("Getting controller from inactive node");
       }
       return mCurrentController;
+   }
+   
+   public boolean verifyNeighborColors(Player currPlayer) {
+      for (final GraphNode node : mAdjacency) {
+         if (node != null && node.isActive() && node.getCurrentController() != currPlayer) {
+            return false;
+         }
+      }
+      
+      return true;
    }
 
    /**
@@ -137,7 +148,7 @@ public class GraphNode {
           * A null check is required here because this node might be a perimeter node
           * that doesn't have all neighbors initialized
           */
-         if (node != null && node.isActive() && node.getCurrentController() != piece.getOwnerNumber()) {
+         if (node != null && node.isActive() && node.getCurrentController() != piece.getOwner()) {
             System.err.println("Failed on color check");
             return false;
          }
@@ -188,13 +199,13 @@ public class GraphNode {
 
    protected void setPiece(Piece piece) {
       if (piece == null) {
-         mCurrentController = -1;
+         mCurrentController = null;
          mPieceStack.removeAllElements();
          mPieceStack = null;
       } else {
          mPieceStack = new Stack<Piece>();
          mPieceStack.add(piece);
-         mCurrentController = piece.getOwnerNumber();
+         mCurrentController = piece.getOwner();
          piece.removeAllNeighbors();
       }
       

@@ -1,7 +1,9 @@
 package io.github.ianw11.hivecarbon.graph;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -9,14 +11,14 @@ import io.github.ianw11.hivecarbon.graph.GraphBounds.Builder;
 import io.github.ianw11.hivecarbon.graph.GraphNode.HexDirection;
 import io.github.ianw11.hivecarbon.piece.Piece;
 
-public class Graph {
+public class HexGraph {
    
    private static final boolean VERBOSE = false;
    
    
    private final Map<Coordinate, GraphNode> mGameMap;
    
-   public Graph() {
+   public HexGraph() {
       mGameMap = new HashMap<Coordinate, GraphNode>();
 
       createNodeAndLinkToNeighbors(new Coordinate(0, 0));
@@ -31,12 +33,42 @@ public class Graph {
       return mGameMap.get(coordinate);
    }
    
+   public GraphNode[] getActiveGraphNodes() {
+      final List<GraphNode> activeNodes = new ArrayList<GraphNode>();
+      for (final GraphNode n : mGameMap.values()) {
+         if (n.isActive()) {
+            activeNodes.add(n);
+         }
+      }
+      
+      final GraphNode[] ret = new GraphNode[activeNodes.size()];
+      activeNodes.toArray(ret);
+      return ret;
+   }
+   
+   /**
+    * Gets an array of inactive nodes
+    * @return The array of inactive nodes
+    */
+   public GraphNode[] getInactiveGraphNodes() {
+      final List<GraphNode> emptyNodes = new ArrayList<GraphNode>();
+      for (final GraphNode n : mGameMap.values()) {
+         if (!n.isActive()) {
+            emptyNodes.add(n);
+         }
+      }
+      
+      final GraphNode[] ret = new GraphNode[emptyNodes.size()];
+      emptyNodes.toArray(ret);
+      return ret;
+   }
+   
    /**
     * Moves a piece from a GraphNode to a target Coordinate.
     * @param oldNode The node the piece is currently on
     * @param targetLocation The destination for the piece
     */
-   public void movePiece(GraphNode oldNode, Coordinate targetLocation) {
+   public void movePiece(Coordinate oldLocation, Coordinate targetLocation) {
       final GraphNode newNode = getGraphNode(targetLocation);
       // Because of new changes, the desired GraphNode should ALWAYS exist
       if (newNode == null) {
@@ -45,15 +77,16 @@ public class Graph {
       
       verifyPerimeterNodes(newNode);
       
+      final GraphNode oldNode = getGraphNode(oldLocation);
       final Piece piece = oldNode.getPiece();
-      
       // For some reason, you need to set null first.  Not sure why....
       oldNode.setPiece(null);
       newNode.setPiece(piece);
    }
    
-   public void playPiece(Piece piece, Coordinate coordinate) {
+   public void playPiece(final Piece piece, final Coordinate coordinate) {
       final GraphNode node = getGraphNode(coordinate);
+      
       // Because of new changes, the desired GraphNode should ALWAYS exist
       if (node == null) {
          throw new IllegalStateException("Perimeter not being applied correctly");
@@ -62,22 +95,24 @@ public class Graph {
       verifyPerimeterNodes(node);
       
       node.setPiece(piece);
-      piece.setPlaced();
    }
    
    /**
-    * See if all pieces are still connected after the parameter piece is removed
+    * See if all pieces are still connected after the parameter piece is removed.
+    * Aka if this piece doesn't exist, is the graph still connected
     * @param piece Piece to ignore
     * @return If all other pieces are still connected
     */
-   public boolean isConnected(Piece piece) {
+   public boolean isConnected(final Piece piece) {
+      // The expected number of other active nodes (the number of pieces on the board minus this piece)
       final int targetSize = numActiveNodes() - 1;
+      
       for (final GraphNode node : mGameMap.values()) {
          if (!node.isActive() || node.getPiece() == piece) {
             continue;
          }
          
-         int connectedNodes = node.connectedNodes(piece);
+         final int connectedNodes = node.connectedNodes(piece);
          if (connectedNodes != targetSize) {
             System.err.println("Connected Nodes: " + connectedNodes + " is not target: " + targetSize);
             return false;
@@ -106,7 +141,7 @@ public class Graph {
             continue;
          }
          
-         Coordinate coordinate = node.getCoordinate();
+         final Coordinate coordinate = node.getCoordinate();
          final int x = coordinate.x;
          final int y = coordinate.y;
          if (VERBOSE)
@@ -139,7 +174,7 @@ public class Graph {
     * Forces creation of perimeter nodes if they do not exist yet.
     * @param node
     */
-   private void verifyPerimeterNodes(GraphNode node) {
+   private void verifyPerimeterNodes(final GraphNode node) {
       final Coordinate coordinate = node.getCoordinate();
       for (final HexDirection location : HexDirection.values()) {
          // Apply each direction to the Node's coordinate
@@ -155,7 +190,7 @@ public class Graph {
       }
    }
    
-   private void createNodeAndLinkToNeighbors(Coordinate coordinate) {
+   private void createNodeAndLinkToNeighbors(final Coordinate coordinate) {
       // Create node
       final GraphNode node = new GraphNode(coordinate);
       mGameMap.put(coordinate, node);
@@ -216,14 +251,15 @@ public class Graph {
             final String stringToDisplay;
             
             if (currNode != null && currNode.isActive()) {
+               // 2 potential options for output
                final String[] potential = new String[2];
-               potential[0] = " p" + currNode.getCurrentController() + ": " + currNode.getPiece().getType().getShortName() + " |";
+               potential[0] = " p" + currNode.getCurrentController().getId() + ": " + currNode.getPiece().getType().getShortName() + " |";
                potential[1] = String.format("  % 2d,% 2d  |", currNode.getCoordinate().x, currNode.getCoordinate().y);
                
                // Toggle this array to output indices or piece info
                stringToDisplay = potential[0];
             } else {
-               stringToDisplay  = "  EMPTY  |";
+               stringToDisplay  = " <EMPTY> |";
             }
             
             if (x % 2 == 0) {

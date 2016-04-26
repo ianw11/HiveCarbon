@@ -8,21 +8,31 @@ import io.github.ianw11.hivecarbon.piece.Piece.Type;
 
 public class Player {
    
+   private final String mName;
    private final int mId;
    
    private final ArrayList<Piece> mPieces = new ArrayList<Piece>();
    
    
-   public Player(int id) {
+   public Player(String name, int id) {
+      mName = name;
       mId = id;
       
       // Initialize the player's pieces
       for (final Type type : Type.values()) {
          for (int i = 0; i < type.getNumInGame(); ++i) {
-            mPieces.add(new Piece(mId, type));
+            mPieces.add(new Piece(this, type));
          }
       }
       
+   }
+   
+   public String getName() {
+      return mName;
+   }
+   
+   public int getId() {
+      return mId;
    }
    
    public List<Piece> getPieces() {
@@ -44,20 +54,21 @@ public class Player {
    
    public boolean isQueenPlayed() {
       for (final Piece piece : mPieces) {
-         if (piece.isQueen() && piece.isPlaced()) {
-            return true;
+         if (piece.isQueen()) {
+            return piece.isPlaced();
          }
       }
-      return false;
+      
+      throw new IllegalStateException("Player doesn't have queen piece");
    }
    
    public boolean isQueenSurrounded() {
       for (final Piece piece : mPieces) {
-         if (piece.isQueen() && piece.isSurrounded()) {
-            return true;
+         if (piece.isQueen()) {
+            return piece.isSurrounded();
          }
       }
-      return false;
+      throw new IllegalStateException("Player doesn't have queen piece");
    }
 
 }

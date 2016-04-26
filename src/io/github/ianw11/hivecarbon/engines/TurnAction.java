@@ -1,7 +1,7 @@
 package io.github.ianw11.hivecarbon.engines;
 
+import io.github.ianw11.hivecarbon.Player.Player;
 import io.github.ianw11.hivecarbon.graph.Coordinate;
-import io.github.ianw11.hivecarbon.piece.Piece;
 
 public abstract class TurnAction {
    
@@ -10,18 +10,14 @@ public abstract class TurnAction {
       MOVE
    };
    
-   public final Piece mPiece;
    public final Action mAction;
-   
    public final Coordinate mCoordinate;
+   public final Player mPlayer;
    
-   public final int mPlayerNumber;
-   
-   public TurnAction(Piece piece, Action action, Coordinate coordinate, int playerNumber) {
-      mPiece = piece;
+   public TurnAction(Action action, Coordinate coordinate, Player player) {
       mAction = action;
       mCoordinate = coordinate;
-      mPlayerNumber = playerNumber;
+      mPlayer = player;
    }
 
 }

@@ -17,7 +17,7 @@ public class UITest extends TestObject {
       
       Driver driver = new Driver();
       
-      driver.doAction(new PlaceTurnAction(playerOnePieces.get(0), new Coordinate(0,0), 0));
+      driver.doAction(new PlaceTurnAction(playerOnePieces.get(0), new Coordinate(0,0), players.get(0)));
       
       driver.close();
       

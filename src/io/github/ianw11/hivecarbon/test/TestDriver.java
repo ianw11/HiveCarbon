@@ -11,7 +11,7 @@ import io.github.ianw11.hivecarbon.engines.PlaceTurnAction;
 import io.github.ianw11.hivecarbon.engines.RulesEngine;
 import io.github.ianw11.hivecarbon.engines.TurnAction;
 import io.github.ianw11.hivecarbon.graph.Coordinate;
-import io.github.ianw11.hivecarbon.graph.Graph;
+import io.github.ianw11.hivecarbon.graph.HexGraph;
 import io.github.ianw11.hivecarbon.graph.GraphBounds;
 import io.github.ianw11.hivecarbon.graph.GraphNode;
 import io.github.ianw11.hivecarbon.piece.Piece;
@@ -55,9 +55,9 @@ public class TestDriver {
    }
    
    public static abstract class TestObject {
-      protected final int numPlayers = 2;
-      protected final RulesEngine engine = new RulesEngine(numPlayers);
-      protected final Graph graph = engine.getGraph();
+      private final String[] playerNames = new String[] { "TestPlayer1", "TestPlayer2" };
+      protected final RulesEngine engine = new RulesEngine(playerNames);
+      protected final HexGraph hexGraph = engine.getGraph();
       protected final List<Player> players = engine.getPlayers();
       
       protected final List<Piece> playerOnePieces = players.get(0).getPieces();
@@ -72,8 +72,8 @@ public class TestDriver {
       public abstract void printTestInfo();
       public abstract boolean run();
       
-      protected boolean check(Coordinate coordinate, int player, Type type) {
-         GraphNode node = graph.getGraphNode(coordinate);
+      protected boolean check(Coordinate coordinate, Player player, Type type) {
+         GraphNode node = hexGraph.getGraphNode(coordinate);
          assert(node != null);
          assert(node.getCurrentController() == player);
          assert(node.getPiece().getType().equals(type));
@@ -81,7 +81,7 @@ public class TestDriver {
       }
       
       protected boolean checkNull(Coordinate coordinate) {
-         return graph.getGraphNode(coordinate) == null;
+         return hexGraph.getGraphNode(coordinate) == null;
       }
       
       protected void expectEqual(Object obtained, Object expected) {
@@ -94,7 +94,7 @@ public class TestDriver {
       }
       
       protected void verifyBounds(int minX, int maxX, int minY, int maxY) {
-         bounds = graph.getMapBounds();
+         bounds = hexGraph.getMapBounds();
          expectEqual(bounds.MIN_X, minX);
          expectEqual(bounds.MAX_X, maxX);
          expectEqual(bounds.MIN_Y, minY);
@@ -105,10 +105,10 @@ public class TestDriver {
       /**
        * Place a piece and expect a success
        */
-      protected void placePieceExpectSuccess(Piece piece, Coordinate coordinate, int playerTurn, boolean isGameFinished, int[] expectedBounds) {
+      protected void placePieceExpectSuccess(Piece piece, Coordinate coordinate, Player player, boolean isGameFinished, int[] expectedBounds) {
          assert(!placedPieces.contains(piece));
          placedPieces.add(piece);
-         doActionSuccess(new PlaceTurnAction(piece, coordinate, playerTurn), isGameFinished, expectedBounds);
+         doActionSuccess(new PlaceTurnAction(piece, coordinate, player), isGameFinished, expectedBounds);
          
          for (Piece p : placedPieces) {
             assert(p.isPlaced());
@@ -118,19 +118,19 @@ public class TestDriver {
          
          for (Piece p : pieceLocations.keySet()) {
             Coordinate c = pieceLocations.get(p);
-            check(c, p.getOwnerNumber(), p.getType());
+            check(c, p.getOwner(), p.getType());
          }
       }
       
       /**
        * Try to place a piece and expect a failure
        */
-      protected void placePieceExpectFail(Piece piece, Coordinate coordinate, int playerTurn, boolean isGameFinished, int[] expectedBounds) {
+      protected void placePieceExpectFail(Piece piece, Coordinate coordinate, Player player, boolean isGameFinished, int[] expectedBounds) {
          boolean pieceAlreadyAdded = placedPieces.contains(piece);
-         GraphNode node = graph.getGraphNode(coordinate);
+         GraphNode node = hexGraph.getGraphNode(coordinate);
          boolean nodeIsNull = node == null;
          
-         doActionFail(new PlaceTurnAction(piece, coordinate, playerTurn), isGameFinished, expectedBounds);
+         doActionFail(new PlaceTurnAction(piece, coordinate, player), isGameFinished, expectedBounds);
          
          assert(pieceAlreadyAdded == placedPieces.contains(piece));
          if (nodeIsNull) {
@@ -139,26 +139,26 @@ public class TestDriver {
          
          for (Piece p : pieceLocations.keySet()) {
             Coordinate c = pieceLocations.get(p);
-            check(c, p.getOwnerNumber(), p.getType());
+            check(c, p.getOwner(), p.getType());
          }
       }
       
       
-      protected void movePieceExpectSuccess(Piece piece, GraphNode oldGraphNode, Coordinate targetCoordinate, int playerTurn, boolean isGameFinished, int[] expectedBounds) {
+      protected void movePieceExpectSuccess(Piece piece, Coordinate oldCoordinate, Coordinate targetCoordinate, Player player, boolean isGameFinished, int[] expectedBounds) {
          // Ensure piece exists on the board already
          assert(placedPieces.contains(piece));
          
          //GraphNode targetNode = graph.findGraphNode(targetCoordinate);
          // assert(targetNode == null || targetNode.getPiece() == null);
          
-         doActionSuccess(new MoveTurnAction(piece, oldGraphNode, targetCoordinate, playerTurn), isGameFinished, expectedBounds);
+         doActionSuccess(new MoveTurnAction(oldCoordinate, targetCoordinate, player), isGameFinished, expectedBounds);
          
          pieceLocations.remove(piece);
          pieceLocations.put(piece, targetCoordinate);
          
          for (Piece p : pieceLocations.keySet()) {
             Coordinate c = pieceLocations.get(p);
-            check(c, p.getOwnerNumber(), p.getType());
+            check(c, p.getOwner(), p.getType());
          }
       }
       

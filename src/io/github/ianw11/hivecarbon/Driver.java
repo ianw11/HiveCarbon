@@ -3,19 +3,13 @@ package io.github.ianw11.hivecarbon;
 import java.awt.Container;
 
 import javax.swing.JFrame;
-import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
 
-import io.github.ianw11.hivecarbon.engines.PlaceTurnAction;
 import io.github.ianw11.hivecarbon.engines.RulesEngine;
 import io.github.ianw11.hivecarbon.engines.TurnAction;
-import io.github.ianw11.hivecarbon.graph.Coordinate;
-import io.github.ianw11.hivecarbon.piece.Piece;
-import io.github.ianw11.hivecarbon.ui.BasicMouseListener.MouseActionListener;
 import io.github.ianw11.hivecarbon.ui.HexMech;
-import io.github.ianw11.hivecarbon.ui.tilepool.TilePoolListView;
 
 /**********************************
  * This is the main class of a Java program to play a game based on hexagonal
@@ -23,7 +17,7 @@ import io.github.ianw11.hivecarbon.ui.tilepool.TilePoolListView;
  * by: M.H. Date: December 2012
  ***********************************/
 
-public class Driver implements MouseActionListener {
+public class Driver {
 
    final static int HEXSIZE = 100; // hex size in pixels
    final static int BORDERS = 15;
@@ -56,20 +50,13 @@ public class Driver implements MouseActionListener {
       mFrame.dispose();
    }
    
-   @Override
-   public void onMouseAction(Coordinate coordinate) {
-      boolean result = mEngine.turn(new PlaceTurnAction(mEngine.getPlayers().get(0).getPieces().get(0), Coordinate.sum(coordinate, new Coordinate(-1, -1)), 0));
-      
-      System.out.println("Result: " + result);
-      
-      if (result) {
-         buildBoard();
-      }
-   }
-   
 
    private void initGame() {
-      mEngine = new RulesEngine(2);
+      String[] playerNames = new String[] {
+            "Ian",
+            "Player 2"
+      };
+      mEngine = new RulesEngine(playerNames);
 
       HexMech.setXYasVertex(false); // RECOMMENDED: leave this as FALSE.
       HexMech.setHeight(HEXSIZE); // Either setHeight or setSize must be run to initialize the hex

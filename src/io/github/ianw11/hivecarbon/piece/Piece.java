@@ -1,5 +1,7 @@
 package io.github.ianw11.hivecarbon.piece;
 
+import io.github.ianw11.hivecarbon.Player.Player;
+
 public class Piece {
    
    public enum Type {
@@ -24,25 +26,26 @@ public class Piece {
       }
    };
    
+   private static int MAX_NUM_NEIGHBORS = 6;
    
-   private final int mOwnerNumber;
+   
+   private final Player mOwner;
    private final Type mType;
-   
    
    private boolean mIsPlaced = false;
    private int mNumNeighbors = 0;
    
-   public Piece(int ownerNumber, Type type) {
-      mOwnerNumber = ownerNumber;
+   public Piece(Player owner, Type type) {
+      mOwner = owner;
       mType = type;
    }
    
    public String toString() {
-      return "[PIECE P" + mOwnerNumber + " - " + mType.name() + "]";
+      return "[PIECE P" + mOwner.getId() + " - " + mType.name() + "]";
    }
    
-   public int getOwnerNumber() {
-      return mOwnerNumber;
+   public Player getOwner() {
+      return mOwner;
    }
    
    public Type getType() {
@@ -65,7 +68,7 @@ public class Piece {
    
    
    public void addNeighbor() {
-      if (++mNumNeighbors > 6) {
+      if (++mNumNeighbors > MAX_NUM_NEIGHBORS) {
          throw new IllegalStateException("More than 6 neighbors for tile");
       }
    }
@@ -81,9 +84,8 @@ public class Piece {
    }
    
    public boolean isSurrounded() {
-      return mNumNeighbors == 6;
+      return mNumNeighbors == MAX_NUM_NEIGHBORS;
    }
-   
    
    
    public int getNumNeighbors() {

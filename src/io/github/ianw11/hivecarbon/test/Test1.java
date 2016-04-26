@@ -14,30 +14,30 @@ public class Test1 extends TestObject {
    public boolean run() {
       
       // Adding P1-QNB to 0,0 should succeed
-      placePieceExpectSuccess(playerOnePieces.get(0), new Coordinate(0,0), 0, false, new int[] {0,0,0,0});
+      placePieceExpectSuccess(playerOnePieces.get(0), new Coordinate(0,0), players.get(0), false, new int[] {0,0,0,0});
       
       // Adding P2-QNB to -1,0 should succeed
-      placePieceExpectSuccess(playerTwoPieces.get(0), new Coordinate(-1,0), 1, false, new int[] {-1,0,0,0});
+      placePieceExpectSuccess(playerTwoPieces.get(0), new Coordinate(-1,0), players.get(1), false, new int[] {-1,0,0,0});
       
       // Adding P1-QNB to -1,0 should fail
-      placePieceExpectFail(playerOnePieces.get(0), new Coordinate(-1,0), 0, false, new int[] {-1,0,0,0});
+      placePieceExpectFail(playerOnePieces.get(0), new Coordinate(-1,0), players.get(0), false, new int[] {-1,0,0,0});
       
       // Adding P1-QNB to 1,0 should fail
-      placePieceExpectFail(playerOnePieces.get(0), new Coordinate(1,0), 0, false, new int[] {-1,0,0,0});
+      placePieceExpectFail(playerOnePieces.get(0), new Coordinate(1,0), players.get(0), false, new int[] {-1,0,0,0});
       
       // Adding P2-QNB to 1,0 should fail
-      placePieceExpectFail(playerTwoPieces.get(0), new Coordinate(1,0), 1, false, new int[] {-1,0,0,0});
+      placePieceExpectFail(playerTwoPieces.get(0), new Coordinate(1,0), players.get(1), false, new int[] {-1,0,0,0});
       
       // Adding P2-BTL to 1,0 should fail
-      placePieceExpectFail(playerTwoPieces.get(1), new Coordinate(1,0), 1, false, new int[] {-1,0,0,0});
+      placePieceExpectFail(playerTwoPieces.get(1), new Coordinate(1,0), players.get(1), false, new int[] {-1,0,0,0});
       
       // Adding P1-BTL to 1,0 should succeed
-      placePieceExpectSuccess(playerOnePieces.get(1), new Coordinate(1,0), 0, false, new int[] {-1,1,0,0});
+      placePieceExpectSuccess(playerOnePieces.get(1), new Coordinate(1,0), players.get(0), false, new int[] {-1,1,0,0});
       
       // Adding P2-BTL to -1,1 should succeed
-      placePieceExpectSuccess(playerTwoPieces.get(1), new Coordinate(-1,1), 1, false, new int[] {-1,1,0,1});
+      placePieceExpectSuccess(playerTwoPieces.get(1), new Coordinate(-1,1), players.get(1), false, new int[] {-1,1,0,1});
       
-      graph.renderToConsole();
+      hexGraph.renderToConsole();
       
       return true;
    }
