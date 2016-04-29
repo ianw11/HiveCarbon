@@ -60,16 +60,16 @@ public class Test4 extends TestObject {
    
    private void setup() {
       // Adding P1-QNB to 0,0 should succeed
-      placePieceExpectSuccess(playerOnePieces.get(0), new Coordinate(0,0), players.get(0), false, new int[] {0,0,0,0});
+      placePieceExpectSuccess(playerOnePieces.get(0), new Coordinate(0,0), players.get(0), new int[] {0,0,0,0});
       
       // Adding P2-QNB to -1,0 should succeed
-      placePieceExpectSuccess(playerTwoPieces.get(0), new Coordinate(-1,0), players.get(1), false, new int[] {-1,0,0,0});
+      placePieceExpectSuccess(playerTwoPieces.get(0), new Coordinate(-1,0), players.get(1), new int[] {-1,0,0,0});
       
       // Adding P1-ANT to 1,0 should succeed
-      placePieceExpectSuccess(playerOnePieces.get(8), new Coordinate(1,0), players.get(0), false, new int[] {-1,1,0,0});
+      placePieceExpectSuccess(playerOnePieces.get(8), new Coordinate(1,0), players.get(0), new int[] {-1,1,0,0});
       
       // Adding P2-BTL to -1,1 should succeed
-      placePieceExpectSuccess(playerTwoPieces.get(1), new Coordinate(-1,1), players.get(1), false, new int[] {-1,1,0,1});
+      placePieceExpectSuccess(playerTwoPieces.get(1), new Coordinate(-1,1), players.get(1), new int[] {-1,1,0,1});
    }
 
 }

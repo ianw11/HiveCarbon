@@ -15,9 +15,17 @@ import io.github.ianw11.hivecarbon.piece.Piece;
 public class RulesEngine {
    
    private static final int NUM_PLAYERS = 2;
+   
+   public enum Action {
+      QUIT,
+      PLAY,
+      MOVE
+   };
 
    private final ArrayList<Player> mPlayers;
    private final HexGraph mGraph;
+   
+   private TurnFactory mTurnFactory;
    
    private int mPlayerTurn = 0;
    private int mGameTurn = 1;
@@ -33,55 +41,52 @@ public class RulesEngine {
       }
       
       mGraph = new HexGraph();
+      mTurnFactory = new DefaultTurnFactory();
+   }
+   
+   public void setTurnFactory(TurnFactory factory) {
+      mTurnFactory = factory;
    }
 
    // TURN is the main method here
    /**
-    * Take a game turn, performing the TurnAction
-    * @param turnAction The action to perform this turn
-    * @return True if legal turnAction
+    * Take a game turn
+    * @return True if game is completed
     */
-   public boolean turn(final TurnAction turnAction) {
-      boolean ret = false;
+   public boolean turn() {
+      final Turn currentTurn = mTurnFactory.getTurn(getCurrentPlayer(), this);
       
-      if (!verifyPlayerTurn(turnAction)) {
-         return false;
-      }
-
-      switch (turnAction.mAction) {
+      final boolean isLegalAction;
+      switch (currentTurn.getTurnAction()) {
       case MOVE:
-         ret = performMove((MoveTurnAction)turnAction);
+         isLegalAction = performMove(currentTurn);
          break;
       case PLAY:
-         ret = performPlay((PlaceTurnAction)turnAction);
+         isLegalAction = performPlay(currentTurn);
          break;
+      default:
+         return true;
       }
-
-      if (ret) {
+      
+      if (isLegalAction) {
          incrementTurnNumbers();
       }
 
-      return ret;
+      return isGameFinished();
    }
    
    public int getGameTurnNumber() {
       return mGameTurn;
    }
    
+   /*
+    * Public for test methods
+    */
    public Player getCurrentPlayer() {
       return mPlayers.get(mPlayerTurn);
    }
    
-   // Verifies it's the turn of the player taking the action
-   private boolean verifyPlayerTurn(final TurnAction turnAction) {
-      return turnAction.mPlayer.getId() == mPlayerTurn;
-   }
-   
-   /**
-    * Returns if the game is completed.
-    * @return True if the game is completed.
-    */
-   public boolean isGameFinished() {
+   private boolean isGameFinished() {
       boolean ret = false;
       for (final Player player : mPlayers) {
          ret |= player.isQueenSurrounded();
@@ -148,9 +153,9 @@ public class RulesEngine {
    }
    
    // If the player wants to MOVE a piece
-   private boolean performMove(final MoveTurnAction action) {
-      final Coordinate oldCoordinate = action.oldCoordinate;
-      final Coordinate coordinate = action.mCoordinate;
+   private boolean performMove(final Turn turn) {
+      final Coordinate oldCoordinate = turn.getSourceCoordinate();
+      final Coordinate coordinate = turn.getDestinationCoordinate();
       final Piece piece = getPieceAtCoordinate(oldCoordinate);
       
       System.out.println("Moving piece " + piece + " to " + coordinate + " from " + oldCoordinate);
@@ -170,9 +175,9 @@ public class RulesEngine {
    }
    
    // If the player wants to PLAY a piece
-   private boolean performPlay(final PlaceTurnAction action) {
-      final Coordinate coordinate = action.mCoordinate;
-      final Piece piece = action.mPiece;
+   private boolean performPlay(final Turn turn) {
+      final Coordinate coordinate = turn.getDestinationCoordinate();
+      final Piece piece = turn.getPieceToPlay();
       
       System.out.println("Playing piece " + piece + " at " + coordinate);
 

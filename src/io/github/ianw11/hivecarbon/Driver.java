@@ -8,7 +8,6 @@ import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
 
 import io.github.ianw11.hivecarbon.engines.RulesEngine;
-import io.github.ianw11.hivecarbon.engines.TurnAction;
 import io.github.ianw11.hivecarbon.ui.HexMech;
 
 /**********************************
@@ -37,8 +36,8 @@ public class Driver {
       initGame();
    }
 
-   public boolean doAction(TurnAction action) {
-      boolean ret = mEngine.turn(action);
+   public boolean doAction() {
+      boolean ret = mEngine.turn();
       if (ret) {
          buildBoard();
       }

@@ -6,14 +6,12 @@ import java.util.List;
 import java.util.Map;
 
 import io.github.ianw11.hivecarbon.Player.Player;
-import io.github.ianw11.hivecarbon.engines.MoveTurnAction;
-import io.github.ianw11.hivecarbon.engines.PlaceTurnAction;
 import io.github.ianw11.hivecarbon.engines.RulesEngine;
-import io.github.ianw11.hivecarbon.engines.TurnAction;
+import io.github.ianw11.hivecarbon.engines.RulesEngine.Action;
 import io.github.ianw11.hivecarbon.graph.Coordinate;
-import io.github.ianw11.hivecarbon.graph.HexGraph;
 import io.github.ianw11.hivecarbon.graph.GraphBounds;
 import io.github.ianw11.hivecarbon.graph.GraphNode;
+import io.github.ianw11.hivecarbon.graph.HexGraph;
 import io.github.ianw11.hivecarbon.piece.Piece;
 import io.github.ianw11.hivecarbon.piece.Piece.Type;
 
@@ -63,6 +61,8 @@ public class TestDriver {
       protected final List<Piece> playerOnePieces = players.get(0).getPieces();
       protected final List<Piece> playerTwoPieces = players.get(1).getPieces();
       
+      private final TestTurnFactory turnFactory = new TestTurnFactory();
+      
       boolean turnResult;
       
       private GraphBounds bounds;
@@ -71,6 +71,14 @@ public class TestDriver {
       
       public abstract void printTestInfo();
       public abstract boolean run();
+      
+      public TestObject() {
+         engine.setTurnFactory(turnFactory);
+      }
+      
+      protected final void feedTurn(Action action, Piece piece, Coordinate source, Coordinate dest) {
+         turnFactory.addTurn(action, piece, source, dest);
+      }
       
       protected boolean check(Coordinate coordinate, Player player, Type type) {
          GraphNode node = hexGraph.getGraphNode(coordinate);
@@ -105,10 +113,10 @@ public class TestDriver {
       /**
        * Place a piece and expect a success
        */
-      protected void placePieceExpectSuccess(Piece piece, Coordinate coordinate, Player player, boolean isGameFinished, int[] expectedBounds) {
+      protected void placePieceExpectSuccess(Piece piece, Coordinate coordinate, Player player, int[] expectedBounds) {
          assert(!placedPieces.contains(piece));
          placedPieces.add(piece);
-         doActionSuccess(new PlaceTurnAction(piece, coordinate, player), isGameFinished, expectedBounds);
+         doActionSuccess(Action.PLAY, piece, null, coordinate, expectedBounds);
          
          for (Piece p : placedPieces) {
             assert(p.isPlaced());
@@ -125,12 +133,12 @@ public class TestDriver {
       /**
        * Try to place a piece and expect a failure
        */
-      protected void placePieceExpectFail(Piece piece, Coordinate coordinate, Player player, boolean isGameFinished, int[] expectedBounds) {
+      protected void placePieceExpectFail(Piece piece, Coordinate coordinate, Player player, int[] expectedBounds) {
          boolean pieceAlreadyAdded = placedPieces.contains(piece);
          GraphNode node = hexGraph.getGraphNode(coordinate);
          boolean nodeIsNull = node == null;
          
-         doActionFail(new PlaceTurnAction(piece, coordinate, player), isGameFinished, expectedBounds);
+         doActionFail(Action.PLAY, piece, null, coordinate, expectedBounds);
          
          assert(pieceAlreadyAdded == placedPieces.contains(piece));
          if (nodeIsNull) {
@@ -144,14 +152,14 @@ public class TestDriver {
       }
       
       
-      protected void movePieceExpectSuccess(Piece piece, Coordinate oldCoordinate, Coordinate targetCoordinate, Player player, boolean isGameFinished, int[] expectedBounds) {
+      protected void movePieceExpectSuccess(Piece piece, Coordinate oldCoordinate, Coordinate targetCoordinate, Player player, int[] expectedBounds) {
          // Ensure piece exists on the board already
          assert(placedPieces.contains(piece));
          
          //GraphNode targetNode = graph.findGraphNode(targetCoordinate);
          // assert(targetNode == null || targetNode.getPiece() == null);
          
-         doActionSuccess(new MoveTurnAction(oldCoordinate, targetCoordinate, player), isGameFinished, expectedBounds);
+         doActionSuccess(Action.MOVE, null, oldCoordinate, targetCoordinate, expectedBounds);
          
          pieceLocations.remove(piece);
          pieceLocations.put(piece, targetCoordinate);
@@ -163,22 +171,19 @@ public class TestDriver {
       }
       
       
-      private void doActionSuccess(TurnAction action, boolean isGameFinished, int[] expectedBounds) {
-         turnResult = engine.turn(action);
-         
-         assert(turnResult == true);
-         genericChecks(isGameFinished, expectedBounds);
+      private void doActionSuccess(Action action, Piece piece, Coordinate source, Coordinate dest, int[] expectedBounds) {
+         feedTurn(action, piece, source, dest);
+         turnResult = engine.turn();
+         genericChecks(expectedBounds);
       }
       
-      private void doActionFail(TurnAction action, boolean isGameFinished, int[] expectedBounds) {
-         turnResult = engine.turn(action);
-         
-         assert(turnResult == false);
-         genericChecks(isGameFinished, expectedBounds);
+      private void doActionFail(Action action, Piece piece, Coordinate source, Coordinate dest, int[] expectedBounds) {
+         feedTurn(action, piece, source, dest);
+         turnResult = engine.turn();
+         genericChecks(expectedBounds);
       }
       
-      private void genericChecks(boolean isGameFinished, int[] expectedBounds) {
-         assert(engine.isGameFinished() == isGameFinished);
+      private void genericChecks(int[] expectedBounds) {
          verifyBounds(expectedBounds[0], expectedBounds[1], expectedBounds[2], expectedBounds[3]);
       }
    }
