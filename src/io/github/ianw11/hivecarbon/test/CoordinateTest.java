@@ -13,44 +13,55 @@ public class CoordinateTest extends TestObject {
 
    @Override
    public boolean run() {
-      Coordinate base = reset();
       
-      Coordinate c = Coordinate.sum(base, HexDirection.TOP, 0);
+      /*
+       * Testing even x-coordinate
+       */
+      
+      Coordinate base = new Coordinate(0, 0);
+      
+      Coordinate c = Coordinate.sum(base, HexDirection.TOP);
       expectEqual(c, new Coordinate(0, -1));
       
-      c = Coordinate.sum(base, HexDirection.TOP_RIGHT, 0);
+      c = Coordinate.sum(base, HexDirection.TOP_RIGHT);
       expectEqual(c, new Coordinate(1, -1));
       
-      c = Coordinate.sum(base, HexDirection.BOTTOM_RIGHT, 0);
+      c = Coordinate.sum(base, HexDirection.BOTTOM_RIGHT);
       expectEqual(c, new Coordinate(1, 0));
       
-      c = Coordinate.sum(base, HexDirection.BOTTOM, 0);
+      c = Coordinate.sum(base, HexDirection.BOTTOM);
       expectEqual(c, new Coordinate(0, 1));
       
-      c = Coordinate.sum(base, HexDirection.BOTTOM_LEFT, 0);
+      c = Coordinate.sum(base, HexDirection.BOTTOM_LEFT);
       expectEqual(c, new Coordinate(-1, 0));
       
-      c = Coordinate.sum(base, HexDirection.TOP_LEFT, 0);
+      c = Coordinate.sum(base, HexDirection.TOP_LEFT);
       expectEqual(c, new Coordinate(-1, -1));
       
       
-      c = Coordinate.sum(base, HexDirection.TOP, 1);
-      expectEqual(c, new Coordinate(0, -1));
+      /*
+       * Testing odd x-coordinate
+       */
       
-      c = Coordinate.sum(base, HexDirection.TOP_RIGHT, 1);
-      expectEqual(c, new Coordinate(1, 0));
+      base = new Coordinate(1, 0);
       
-      c = Coordinate.sum(base, HexDirection.BOTTOM_RIGHT, 1);
+      c = Coordinate.sum(base, HexDirection.TOP);
+      expectEqual(c, new Coordinate(1, -1));
+      
+      c = Coordinate.sum(base, HexDirection.TOP_RIGHT);
+      expectEqual(c, new Coordinate(2, 0));
+      
+      c = Coordinate.sum(base, HexDirection.BOTTOM_RIGHT);
+      expectEqual(c, new Coordinate(2, 1));
+      
+      c = Coordinate.sum(base, HexDirection.BOTTOM);
       expectEqual(c, new Coordinate(1, 1));
       
-      c = Coordinate.sum(base, HexDirection.BOTTOM, 1);
+      c = Coordinate.sum(base, HexDirection.BOTTOM_LEFT);
       expectEqual(c, new Coordinate(0, 1));
       
-      c = Coordinate.sum(base, HexDirection.BOTTOM_LEFT, 1);
-      expectEqual(c, new Coordinate(-1, 1));
-      
-      c = Coordinate.sum(base, HexDirection.TOP_LEFT, 1);
-      expectEqual(c, new Coordinate(-1, 0));
+      c = Coordinate.sum(base, HexDirection.TOP_LEFT);
+      expectEqual(c, new Coordinate(0, 0));
       
       
       Coordinate hashC = new Coordinate(1, 1);
@@ -58,10 +69,6 @@ public class CoordinateTest extends TestObject {
       expectEqual(c.hashCode(), hashC.hashCode());
       
       return true;
-   }
-   
-   private Coordinate reset() {
-      return new Coordinate(0, 0);
    }
 
 }

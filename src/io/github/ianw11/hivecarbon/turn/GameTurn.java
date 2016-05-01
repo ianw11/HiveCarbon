@@ -1,13 +1,12 @@
-package io.github.ianw11.hivecarbon.engines;
+package io.github.ianw11.hivecarbon.turn;
 
 import java.util.List;
-import java.util.Scanner;
 
 import io.github.ianw11.hivecarbon.Player.Player;
+import io.github.ianw11.hivecarbon.engines.RulesEngine;
 import io.github.ianw11.hivecarbon.engines.RulesEngine.Action;
 import io.github.ianw11.hivecarbon.graph.Coordinate;
 import io.github.ianw11.hivecarbon.io.InputMethod;
-import io.github.ianw11.hivecarbon.io.KeyboardInputMethod;
 import io.github.ianw11.hivecarbon.piece.Piece;
 
 public class GameTurn extends Turn {
@@ -33,7 +32,7 @@ public class GameTurn extends Turn {
       public final TurnState NEXT;
       public final TurnState PREV;
       
-      private TurnState(TurnState prev, TurnState next) {
+      private TurnState(final TurnState prev, final TurnState next) {
          PREV = prev;
          NEXT = next;
       }
@@ -59,6 +58,7 @@ public class GameTurn extends Turn {
       
       mOptionString = sb.toString();
    }
+   private static final int GO_BACK_INPUT = -1;
    
    // The actual current state of the turn building process
    private TurnState mTurnState = TurnState.SELECT_ACTION;
@@ -68,15 +68,14 @@ public class GameTurn extends Turn {
    
    // Member variables to build the object
    private final Player mCurrentPlayer;
-   private final InputMethod mInputMethod;
    private final RulesEngine mRulesEngine;
+   private final InputMethod mInputMethod;
    
    
-   public GameTurn(final Player player, final RulesEngine rulesEngine, Scanner scanner) {
+   public GameTurn(final Player player, final RulesEngine rulesEngine, final InputMethod inputMethod) {
       mCurrentPlayer = player;
       mRulesEngine = rulesEngine;
-
-      mInputMethod = new KeyboardInputMethod(scanner);
+      mInputMethod = inputMethod;
       
       // Build the turn
       while (mTurnState != TurnState.READY) {
@@ -100,9 +99,11 @@ public class GameTurn extends Turn {
       }
    }
    
-   
+   /**
+    * Override Turn method
+    */
    @Override
-   protected boolean verifyTurnState() {
+   protected boolean isReady() {
       return mTurnState == TurnState.READY;
    }
    
@@ -114,7 +115,7 @@ public class GameTurn extends Turn {
       System.out.println(mOptionString);
       
       try {
-         mTurnAction = ACTIONS[mInputMethod.readInt()];
+         setTurnAction(ACTIONS[mInputMethod.readInt()]);
       } catch (NumberFormatException e) {
          return updateTurnState(UpdateTurnState.FAILURE);
       } catch (IndexOutOfBoundsException e) {
@@ -127,25 +128,29 @@ public class GameTurn extends Turn {
    private TurnState queryPiece() {
       final Piece[] unplayedPieces = mCurrentPlayer.getUnusedPieces();
       
-      System.out.println("Choose an unplayed piece (-1 to go back)");
+      System.out.println("Choose an unplayed piece (" + GO_BACK_INPUT + " to go back)");
       for (int i = 0; i < unplayedPieces.length; ++i) {
          System.out.println(i + ": " + unplayedPieces[i].toString());
       }
       
+      final int selection;
       try {
-         final int selection = mInputMethod.readInt();
-         if (selection == -1) {
-            return updateTurnState(UpdateTurnState.GO_BACK);
-         }
          
-         mPieceToPlay = unplayedPieces[selection];
-         return updateTurnState(UpdateTurnState.SUCCESS);
+         selection = mInputMethod.readInt();
+         
       } catch (NumberFormatException e) {
          return updateTurnState(UpdateTurnState.FAILURE);
       } catch (IndexOutOfBoundsException e) {
          System.out.println("Enter a valid index");
          return updateTurnState(UpdateTurnState.FAILURE);
       }
+      
+      if (selection == GO_BACK_INPUT) {
+         return updateTurnState(UpdateTurnState.GO_BACK);
+      }
+      
+      setPieceToPlay(unplayedPieces[selection]);
+      return updateTurnState(UpdateTurnState.SUCCESS);
    }
    
    private TurnState querySourceCoordinate() {
@@ -156,26 +161,30 @@ public class GameTurn extends Turn {
          return updateTurnState(UpdateTurnState.GO_BACK);
       }
       
-      System.out.println("Choose a piece to move (-1 to go back)");
+      System.out.println("Choose a piece to move (" + GO_BACK_INPUT + " to go back)");
       for (int i = 0; i < activeCoordinates.size(); ++i) {
          final Piece piece = mRulesEngine.getPieceAtCoordinate(activeCoordinates.get(i));
          System.out.println(i + ": " + piece);
       }
       
+      final int selection;
       try {
-         final int selection = mInputMethod.readInt();
-         if (selection == -1) {
-            return updateTurnState(UpdateTurnState.GO_BACK);
-         }
          
-         mSourceCoordinate = activeCoordinates.get(selection);
-         return updateTurnState(UpdateTurnState.SUCCESS);
+         selection = mInputMethod.readInt();
+         
       } catch (NumberFormatException e) {
          return updateTurnState(UpdateTurnState.FAILURE);
       } catch (IndexOutOfBoundsException e) {
          System.out.println("Enter a valid index");
          return updateTurnState(UpdateTurnState.FAILURE);
       }
+      
+      if (selection == GO_BACK_INPUT) {
+         return updateTurnState(UpdateTurnState.GO_BACK);
+      }
+      
+      setSourceCoordinate(activeCoordinates.get(selection));
+      return updateTurnState(UpdateTurnState.SUCCESS);
    }
    
    private TurnState queryDestinationCoordinate(boolean isMove) {
@@ -186,22 +195,30 @@ public class GameTurn extends Turn {
          System.out.println(i + ": " + emptyNodes.get(i));
       }
       
+      final int selection;
       try {
-         final int selection = mInputMethod.readInt();
-         if (selection == -1) {
-            return updateTurnState(UpdateTurnState.GO_BACK);
-         }
          
-         mDestinationCoordinate = emptyNodes.get(selection);
-         return updateTurnState(UpdateTurnState.SUCCESS);
+         selection = mInputMethod.readInt();
+         
       } catch (NumberFormatException e) {
          return updateTurnState(UpdateTurnState.FAILURE);
       } catch (IndexOutOfBoundsException e) {
          System.out.println("Enter a valid index");
          return updateTurnState(UpdateTurnState.FAILURE);
       }
+      
+      if (selection == GO_BACK_INPUT) {
+         return updateTurnState(UpdateTurnState.GO_BACK);
+      }
+      
+      setDestinationCoordinate(emptyNodes.get(selection));
+      return updateTurnState(UpdateTurnState.SUCCESS);
    }
    
+   
+   /*
+    * Methods to update the state of this Turn.
+    */
    
    /**
     * Update the internal state to determine what else is required from the player
@@ -230,7 +247,7 @@ public class GameTurn extends Turn {
       switch (mTurnState) {
       case SELECT_ACTION:
          mPrevTurnState = TurnState.SELECT_ACTION;
-         switch (mTurnAction) {
+         switch (getTurnAction()) {
          case QUIT:
             return TurnState.READY;
          case MOVE:

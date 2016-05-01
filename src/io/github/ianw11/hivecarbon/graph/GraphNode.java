@@ -11,6 +11,35 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public class GraphNode {
    
+   /*
+    * The HexDirection directionality assumes that:
+    *  - X gets more positive to the right and more negative to the left
+    *  - Y gets more positive going down and more negative going up
+    *  
+    *             -y
+    *              ^
+    *              |
+    *              |
+    *     -x <---- o ----> +x
+    *              |
+    *              |
+    *              V
+    *             +y
+    *  
+    *                     >------<
+    *                    /        \
+    *            >------< ( 0, -1) >------<
+    *           /        \        /        \
+    *          < (-1, -1) >------< ( 1, -1) >------<
+    *           \        /        \        /        \
+    *            >------< ( 0,  0) >------< ( 2,  0) >
+    *           /        \        /        \        /
+    *          < (-1,  0) >------< ( 1,  0) >------<
+    *           \        /        \        / 
+    *            >------< ( 0,  1) >------<
+    *                    \        /
+    *                     >------<
+    */
    public enum HexDirection {
       TOP (new int[] {0,-1}),
       TOP_RIGHT (new int[] {1,-1}),
@@ -24,8 +53,8 @@ public class GraphNode {
          movementMatrix = matrix;
       }
       
-      public int[] getMovementMatrix(int xCoord) {
-         if (xCoord % 2 == 0) {
+      public int[] getMovementMatrix(Coordinate coordinate) {
+         if (coordinate.x % 2 == 0) {
             return evenXMatrix();
          } else {
             return oddXMatrix();
@@ -67,18 +96,23 @@ public class GraphNode {
    };
 
    private final Coordinate mCoordinate;
-   private final GraphNode[] mAdjacency = new GraphNode[6];
+   private final GraphNode[] mAdjacency = new GraphNode[HexGraph.MAX_NUM_NEIGHBORS];
 
    private Stack<Piece> mPieceStack = null;
    private Player mCurrentController;
    
    // Used to hold visited nodes when performing the DFS.  Allocated once for ease.
-   private final List<GraphNode> mRecursionDirtyList = new ArrayList<GraphNode>();
+   private final List<GraphNode> mRECURSION_DIRTY_LIST = new ArrayList<GraphNode>();
 
    public GraphNode(Coordinate coordinate) {
       mCoordinate = coordinate;
    }
 
+   
+   /*
+    * PUBLIC METHODS (TO GET INFORMATION)
+    */
+   
    /**
     * Returns the coordinate of this node
     * @return
@@ -117,6 +151,11 @@ public class GraphNode {
       return mCurrentController;
    }
    
+   /**
+    * Ensures each node around this node has the same controller as this node
+    * @param currPlayer The player attempting to PLAY a piece on this node
+    * @return True if this is a legal PLAY node
+    */
    public boolean verifyNeighborColors(Player currPlayer) {
       for (final GraphNode node : mAdjacency) {
          if (node != null && node.isActive() && node.getCurrentController() != currPlayer) {
@@ -173,10 +212,14 @@ public class GraphNode {
    }
    
    
+   /*
+    * PROTECTED METHODS FOR THE GRAPH
+    */
+   
    protected int connectedNodes(Piece piece) {
-      mRecursionDirtyList.clear();
-      connectedNodesInternal(mRecursionDirtyList, piece);
-      return mRecursionDirtyList.size();
+      mRECURSION_DIRTY_LIST.clear();
+      connectedNodesInternal(mRECURSION_DIRTY_LIST, piece);
+      return mRECURSION_DIRTY_LIST.size();
    }
    
    protected List<Coordinate> getEmptyNeighbors() {
@@ -193,10 +236,20 @@ public class GraphNode {
       return ret;
    }
    
+   /**
+    * When a new GraphNode is allocated, this adds that node to this node's adjacency.
+    * @param direction The direction from *this* node to the new node.
+    * @param neighbor The new neighbor
+    */
    protected void setAdjacency(HexDirection direction, GraphNode neighbor) {
       mAdjacency[direction.ordinal()] = neighbor;
    }
 
+   /**
+    * Sets a piece on this node.
+    * Updates state accordingly
+    * @param piece The piece getting placed or null to remove
+    */
    protected void setPiece(Piece piece) {
       if (piece == null) {
          mCurrentController = null;
@@ -211,6 +264,11 @@ public class GraphNode {
       
       updateNeighborCount();
    }
+   
+   
+   /*
+    * PRIVATE METHODS TO UPDATE NODE STATE
+    */
    
    private void updateNeighborCount() {
       for (final GraphNode neighbor : mAdjacency) {
@@ -248,6 +306,11 @@ public class GraphNode {
       }
    }
    
+   /**
+    * Called by connectedNodes (defined above).  This is the recursive method for the BFS.
+    * @param visited The list marking previously visited nodes.
+    * @param piece The piece that a player is attempting to MOVE.
+    */
    private void connectedNodesInternal(List<GraphNode> visited, Piece piece) {
       if (piece.equals(mPieceStack.peek())) {
          return;

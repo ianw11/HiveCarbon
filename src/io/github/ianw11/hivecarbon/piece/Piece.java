@@ -1,6 +1,7 @@
 package io.github.ianw11.hivecarbon.piece;
 
 import io.github.ianw11.hivecarbon.Player.Player;
+import io.github.ianw11.hivecarbon.graph.HexGraph;
 
 public class Piece {
    
@@ -13,7 +14,7 @@ public class Piece {
 
       private final int mNumInGame;
       private final String mShortName;
-      private Type(int numInGame, String shortName) {
+      private Type(final int numInGame, final String shortName) {
          mNumInGame = numInGame;
          mShortName = shortName;
       }
@@ -26,16 +27,17 @@ public class Piece {
       }
    };
    
-   private static int MAX_NUM_NEIGHBORS = 6;
+   private static final int MAX_NUM_NEIGHBORS = HexGraph.MAX_NUM_NEIGHBORS;
+   private static final int MIN_NUM_NEIGHBORS = 0;
    
    
    private final Player mOwner;
    private final Type mType;
    
    private boolean mIsPlaced = false;
-   private int mNumNeighbors = 0;
+   private int mNumNeighbors = MIN_NUM_NEIGHBORS;
    
-   public Piece(Player owner, Type type) {
+   public Piece(final Player owner, final Type type) {
       mOwner = owner;
       mType = type;
    }
@@ -69,18 +71,18 @@ public class Piece {
    
    public void addNeighbor() {
       if (++mNumNeighbors > MAX_NUM_NEIGHBORS) {
-         throw new IllegalStateException("More than 6 neighbors for tile");
+         throw new IllegalStateException("More than " + MAX_NUM_NEIGHBORS + " neighbors for tile");
       }
    }
    
    public void removeNeighbor() {
       if (--mNumNeighbors < 0) {
-         throw new IllegalStateException("Less than 0 neighbors for tile");
+         throw new IllegalStateException("Less than " + MIN_NUM_NEIGHBORS + " neighbors for tile");
       }
    }
    
    public void removeAllNeighbors() {
-      mNumNeighbors = 0;
+      mNumNeighbors = MIN_NUM_NEIGHBORS;
    }
    
    public boolean isSurrounded() {

@@ -14,6 +14,7 @@ import io.github.ianw11.hivecarbon.piece.Piece;
 public class HexGraph {
    
    private static final boolean VERBOSE = false;
+   public static final int MAX_NUM_NEIGHBORS = 6;
    
    
    private final Map<Coordinate, GraphNode> mGameMap;
@@ -29,7 +30,7 @@ public class HexGraph {
     * @param coordinate
     * @return The GraphNode if present, else null
     */
-   public GraphNode getGraphNode(Coordinate coordinate) {
+   public GraphNode getGraphNode(final Coordinate coordinate) {
       return mGameMap.get(coordinate);
    }
    
@@ -64,11 +65,11 @@ public class HexGraph {
    }
    
    /**
-    * Moves a piece from a GraphNode to a target Coordinate.
-    * @param oldNode The node the piece is currently on
+    * Moves a piece from a Coordinate to a target Coordinate.
+    * @param oldNode The Coordinate the piece is currently on
     * @param targetLocation The destination for the piece
     */
-   public void movePiece(Coordinate oldLocation, Coordinate targetLocation) {
+   public void movePiece(final Coordinate oldLocation, final Coordinate targetLocation) {
       final GraphNode newNode = getGraphNode(targetLocation);
       // Because of new changes, the desired GraphNode should ALWAYS exist
       if (newNode == null) {
@@ -79,11 +80,16 @@ public class HexGraph {
       
       final GraphNode oldNode = getGraphNode(oldLocation);
       final Piece piece = oldNode.getPiece();
-      // For some reason, you need to set null first.  Not sure why....
+      // oldNode needs to be dealt with first
       oldNode.setPiece(null);
       newNode.setPiece(piece);
    }
    
+   /**
+    * Plays a piece on a Coordinate
+    * @param piece The piece to play
+    * @param coordinate Where the piece should be played
+    */
    public void playPiece(final Piece piece, final Coordinate coordinate) {
       final GraphNode node = getGraphNode(coordinate);
       
@@ -142,13 +148,10 @@ public class HexGraph {
          }
          
          final Coordinate coordinate = node.getCoordinate();
-         final int x = coordinate.x;
-         final int y = coordinate.y;
          if (VERBOSE)
-            System.out.println("x: " + x + " and y: " + y);
+            System.out.println(coordinate);
          
-         builder.setX(x);
-         builder.setY(y);
+         builder.addCoordinate(coordinate);
       }
       
       if (VERBOSE)
@@ -157,7 +160,12 @@ public class HexGraph {
       return builder.build();
    }
    
-   public Set<Coordinate> getPerimeter(Coordinate toExclude) {
+   /**
+    * Gets all empty nodes (the perimeter) in the Graph.
+    * @param toExclude
+    * @return The list of Coordinates that are inactive in the current Graph
+    */
+   public Set<Coordinate> getPerimeter(final Coordinate toExclude) {
       final Set<Coordinate> ret = new HashSet<Coordinate>();
       
       for (final GraphNode node : mGameMap.values()) {
@@ -178,7 +186,7 @@ public class HexGraph {
       final Coordinate coordinate = node.getCoordinate();
       for (final HexDirection location : HexDirection.values()) {
          // Apply each direction to the Node's coordinate
-         final Coordinate neighborCoordinate = Coordinate.sum(coordinate, location.getMovementMatrix(coordinate.x));
+         final Coordinate neighborCoordinate = Coordinate.sum(coordinate, location.getMovementMatrix(coordinate));
          
          // If the neighbor does not exist, create the neighbor as a perimeter node
          if (getGraphNode(neighborCoordinate) == null) {
@@ -197,7 +205,7 @@ public class HexGraph {
       
       // Then link to neighbors
       for (final HexDirection location : HexDirection.values()) {
-         final Coordinate neighborCoordinate = Coordinate.sum(coordinate, location.getMovementMatrix(coordinate.x));
+         final Coordinate neighborCoordinate = Coordinate.sum(coordinate, location.getMovementMatrix(coordinate));
          final GraphNode neighbor = getGraphNode(neighborCoordinate);
          if (neighbor == null) {
             continue;

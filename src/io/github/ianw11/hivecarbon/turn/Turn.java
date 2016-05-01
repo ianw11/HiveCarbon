@@ -1,4 +1,4 @@
-package io.github.ianw11.hivecarbon.engines;
+package io.github.ianw11.hivecarbon.turn;
 
 import io.github.ianw11.hivecarbon.engines.RulesEngine.Action;
 import io.github.ianw11.hivecarbon.graph.Coordinate;
@@ -7,17 +7,29 @@ import io.github.ianw11.hivecarbon.piece.Piece;
 public abstract class Turn {
    
    // Resulting data
-   protected Action mTurnAction;
-   protected Piece mPieceToPlay; // Used for PLACING a piece
-   protected Coordinate mSourceCoordinate; // Used for MOVING a piece
-   protected Coordinate mDestinationCoordinate; // Used for PLACING *AND* MOVING
+   private Action mTurnAction;
+   private Piece mPieceToPlay; // Used for PLACING a piece
+   private Coordinate mSourceCoordinate; // Used for MOVING a piece
+   private Coordinate mDestinationCoordinate; // Used for PLACING *AND* MOVING
    
-   public Action getTurnAction() {
+   
+   /*
+    * ABSTRACT METHOD THAT MUST BE OVERRIDDEN
+    */
+   
+   protected abstract boolean isReady();
+   
+   
+   /*
+    * PUBLIC GETTERS
+    */
+   
+   public final Action getTurnAction() {
       return mTurnAction;
    }
    
-   public Piece getPieceToPlay() {
-      if (!verifyTurnState()) {
+   public final Piece getPieceToPlay() {
+      if (!isReady()) {
          throw new IllegalStateException("Turn not ready");
       }
       if (mTurnAction != Action.PLAY) {
@@ -30,8 +42,8 @@ public abstract class Turn {
       return mPieceToPlay;
    }
    
-   public Coordinate getSourceCoordinate() {
-      if (!verifyTurnState()) {
+   public final Coordinate getSourceCoordinate() {
+      if (!isReady()) {
          throw new IllegalStateException("Turn not ready");
       }
       if (mTurnAction != Action.MOVE) {
@@ -44,8 +56,8 @@ public abstract class Turn {
       return mSourceCoordinate;
    }
    
-   public Coordinate getDestinationCoordinate() {
-      if (!verifyTurnState()) {
+   public final Coordinate getDestinationCoordinate() {
+      if (!isReady()) {
          throw new IllegalStateException("Turn not ready");
       }
       if (mDestinationCoordinate == null) {
@@ -55,6 +67,24 @@ public abstract class Turn {
       return mDestinationCoordinate;
    }
    
-   protected abstract boolean verifyTurnState();
-
+   
+   /*
+    * PROTECTED SETTERS
+    */
+   
+   protected final void setTurnAction(Action action) {
+      mTurnAction = action;
+   }
+   
+   protected final void setPieceToPlay(Piece piece) {
+      mPieceToPlay = piece;
+   }
+   
+   protected final void setSourceCoordinate(Coordinate coordinate) {
+      mSourceCoordinate = coordinate;
+   }
+   
+   protected final void setDestinationCoordinate(Coordinate coordinate) {
+      mDestinationCoordinate = coordinate;
+   }
 }

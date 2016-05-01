@@ -21,8 +21,8 @@ public class Coordinate {
       return new Coordinate(c1.x + arr[0], c1.y + arr[1]);
    }
    
-   public static Coordinate sum(Coordinate c1, HexDirection l, int xCoord) {
-      final int[] matrix = l.getMovementMatrix(xCoord);
+   public static Coordinate sum(Coordinate c1, HexDirection l) {
+      final int[] matrix = l.getMovementMatrix(c1);
       return new Coordinate(c1.x + matrix[0], c1.y + matrix[1]);
    }
    

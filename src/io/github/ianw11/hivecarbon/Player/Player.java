@@ -14,7 +14,7 @@ public class Player {
    private final ArrayList<Piece> mPieces = new ArrayList<Piece>();
    
    
-   public Player(String name, int id) {
+   public Player(final String name, final int id) {
       mName = name;
       mId = id;
       

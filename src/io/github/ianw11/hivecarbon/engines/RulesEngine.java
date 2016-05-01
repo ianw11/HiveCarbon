@@ -11,6 +11,9 @@ import io.github.ianw11.hivecarbon.graph.GraphBounds.Builder;
 import io.github.ianw11.hivecarbon.graph.GraphNode;
 import io.github.ianw11.hivecarbon.graph.HexGraph;
 import io.github.ianw11.hivecarbon.piece.Piece;
+import io.github.ianw11.hivecarbon.turn.DefaultTurnFactory;
+import io.github.ianw11.hivecarbon.turn.Turn;
+import io.github.ianw11.hivecarbon.turn.TurnFactory;
 
 public class RulesEngine {
    
@@ -43,10 +46,6 @@ public class RulesEngine {
       mGraph = new HexGraph();
       mTurnFactory = new DefaultTurnFactory();
    }
-   
-   public void setTurnFactory(TurnFactory factory) {
-      mTurnFactory = factory;
-   }
 
    // TURN is the main method here
    /**
@@ -54,6 +53,10 @@ public class RulesEngine {
     * @return True if game is completed
     */
    public boolean turn() {
+      if (isGameFinished()) {
+         throw new IllegalStateException("Game is finished, cannot take another turn");
+      }
+      
       final Turn currentTurn = mTurnFactory.getTurn(getCurrentPlayer(), this);
       
       final boolean isLegalAction;
@@ -75,24 +78,23 @@ public class RulesEngine {
       return isGameFinished();
    }
    
+   
+   /*
+    * Public methods offering game state information to display
+    */
+   
    public int getGameTurnNumber() {
       return mGameTurn;
    }
    
-   /*
-    * Public for test methods
-    */
    public Player getCurrentPlayer() {
       return mPlayers.get(mPlayerTurn);
    }
    
-   private boolean isGameFinished() {
-      boolean ret = false;
-      for (final Player player : mPlayers) {
-         ret |= player.isQueenSurrounded();
-      }
-      return ret;
-   }
+   
+   /*
+    * Public methods to correctly build game state
+    */
    
    public List<Coordinate> getActiveCoordinates(final Player player) {
       final List<Coordinate> pieces = new ArrayList<Coordinate>();
@@ -111,7 +113,6 @@ public class RulesEngine {
     * @return The list of empty coordinates
     */
    public List<Coordinate> getLegalPlacementCoordinates(final boolean isMove) {
-      System.out.println("getLegalPlacementCoordinates()");
       // A piece can be set next to another colored piece during a MOVE
       final boolean canGoNextToOtherColor = isMove || mGraph.numActiveNodes() < 2;
       final List<GraphNode> inactiveNodes = Arrays.asList(mGraph.getInactiveGraphNodes());
@@ -133,17 +134,13 @@ public class RulesEngine {
       return node.getPiece();
    }
    
-   /*
-    * Get an array of unused pieces from a Player
-    * @param playerNum The desired player
-    * @return An array of all unused pieces
-    */
-   /*
-   private Piece[] getUnusedPieces(int playerNum) {
-      return mPlayers.get(playerNum).getUnusedPieces();
+   private boolean isGameFinished() {
+      boolean ret = false;
+      for (final Player player : mPlayers) {
+         ret |= player.isQueenSurrounded();
+      }
+      return ret;
    }
-   */
-
    
    private void incrementTurnNumbers() {
       if (++mPlayerTurn == mPlayers.size()) {
@@ -151,6 +148,11 @@ public class RulesEngine {
          ++mGameTurn;
       }
    }
+   
+   
+   /*
+    * Private methods to actually run the game
+    */
    
    // If the player wants to MOVE a piece
    private boolean performMove(final Turn turn) {
@@ -166,11 +168,6 @@ public class RulesEngine {
       
       mGraph.movePiece(oldCoordinate, coordinate);
       
-      return true;
-   }
-   
-   private boolean pieceCanMove(Coordinate coordinate, Piece piece) {
-      //final GraphNode destination = mGraph.findGraphNode(coordinate);
       return true;
    }
    
@@ -192,10 +189,16 @@ public class RulesEngine {
       return true;
    }
    
-   private boolean isDestinationOk(Coordinate coordinate, Piece piece, boolean canGoNextToOtherColor) {
-      GraphNode target = mGraph.getGraphNode(coordinate);
+   
+   private boolean pieceCanMove(final Coordinate coordinate, final Piece piece) {
+      //final GraphNode destination = mGraph.findGraphNode(coordinate);
+      return true;
+   }
+   
+   private boolean isDestinationOk(final Coordinate coordinate, final Piece piece, boolean canGoNextToOtherColor) {
+      final GraphNode target = mGraph.getGraphNode(coordinate);
       if (target == null) {
-         return true;
+         return false;
       }
 
       // Make sure that the player going has placed their queen
@@ -215,13 +218,12 @@ public class RulesEngine {
    /**
     * UI Methods
     */
-   public int[] getShift() {
+   private int[] getShift() {
       GraphBounds temp = mGraph.getMapBounds();
-      int[] ret = new int[] {
+      return new int[] {
             -temp.MIN_X,
             -temp.MIN_Y
       };
-      return ret;
    }
    
    public GraphBounds getNormalizedBounds() {
@@ -230,30 +232,47 @@ public class RulesEngine {
       
       Builder builder = new Builder();
       
-      builder.setX(temp.MIN_X + shift[0]);
-      builder.setX(temp.MAX_X + shift[0]);
+      builder.addX(temp.MIN_X + shift[0]);
+      builder.addX(temp.MAX_X + shift[0]);
       
-      builder.setY(temp.MIN_Y + shift[1]);
-      builder.setY(temp.MAX_Y + shift[1]);
+      builder.addY(temp.MIN_Y + shift[1]);
+      builder.addY(temp.MAX_Y + shift[1]);
       
       return builder.build();
    }
 
+   
    /**
     * Testing methods
     */
    
+   /**
+    * TESTING METHOD ONLY
+    * @return
+    */
    public List<Player> getPlayers() {
       return mPlayers;
    }
    
+   /**
+    * TESTING METHOD ONLY
+    */
    public void renderGraphToConsole() {
       mGraph.renderToConsole();
    }
    
+   /**
+    * TESTING METHOD ONLY
+    * @return
+    */
    public HexGraph getGraph() {
       return mGraph;
    }
-   
 
+   /**
+    * TESTING METHOD ONLY
+    */
+   public void setTurnFactory(final TurnFactory factory) {
+      mTurnFactory = factory;
+   }
 }

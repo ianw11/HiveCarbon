@@ -10,7 +10,7 @@ public class HumanTestDriver {
    public static void main(String[] args) {
       System.out.println("Welcome to Hive!  Play a test game to verify functionality!");
       
-      //initializeToPredefinedState();
+      initializeToPredefinedState();
       
       boolean isDone = false;
       while (!isDone) {
